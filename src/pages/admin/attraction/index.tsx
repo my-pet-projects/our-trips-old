@@ -1,3 +1,4 @@
+import GeographyPicker from "@/components/geography/geography-picker";
 import Head from "next/head";
 
 function Attractions() {
@@ -32,6 +33,9 @@ function Attractions() {
         <h2 className="text-xs font-medium uppercase tracking-wide text-gray-500">
           Filter
         </h2>
+        <div>
+          <GeographyPicker />
+        </div>
       </div>
       {/* Attraction list */}
       <div className="mt-8 hidden sm:block">
