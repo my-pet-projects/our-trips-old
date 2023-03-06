@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { prisma } from "../src/server/db";
 import countries from "./data/countries.json";
 import geoNames from "./data/geonames-all-cities-with-a-population-1000.json";
@@ -44,7 +49,9 @@ async function main() {
         latitude: item.coordinates.lat,
         longitude: item.coordinates.lon,
         modificationDate: new Date(item.modification_date),
-        alternateNames: item.alternate_names?.map((name) => name).join("|"),
+        alternateNames: item.alternate_names
+          ?.map((name: string) => name)
+          .join("|"),
       },
       update: {
         name: item.name,
@@ -57,7 +64,9 @@ async function main() {
         latitude: item.coordinates.lat,
         longitude: item.coordinates.lon,
         modificationDate: new Date(item.modification_date),
-        alternateNames: item.alternate_names?.map((name) => name).join("|"),
+        alternateNames: item.alternate_names
+          ?.map((name: string) => name)
+          .join("|"),
       },
     });
   }
