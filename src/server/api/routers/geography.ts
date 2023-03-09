@@ -4,7 +4,11 @@ import { createTRPCRouter, publicProcedure } from "../trpc";
 
 export const geographyRouter = createTRPCRouter({
   getCountries: publicProcedure.query(async ({ ctx }) => {
-    return await ctx.prisma.country.findMany({});
+    return await ctx.prisma.country.findMany({
+      orderBy: {
+        nameCommon: "asc",
+      },
+    });
   }),
   getCities: publicProcedure
     .input(z.object({ countryCode: z.string() }))
@@ -12,6 +16,9 @@ export const geographyRouter = createTRPCRouter({
       return await ctx.prisma.city.findMany({
         where: {
           countryCode: input.countryCode,
+        },
+        orderBy: {
+          name: "asc",
         },
       });
     }),

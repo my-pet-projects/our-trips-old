@@ -31,19 +31,21 @@ const GeographyPicker: React.FC = () => {
           />
         </div>
 
-        <div className="col-span-4 sm:col-span-2">
-          <label
-            htmlFor="country"
-            className="block text-sm font-medium text-gray-700"
-          >
-            City
-            <CityPicker
-              countryCode={selectedCountry?.cca2}
-              selectedCity={selectedCity}
-              setSelectedCity={setSelectedCity}
-            />
-          </label>
-        </div>
+        {selectedCountry && (
+          <div className="col-span-4 sm:col-span-2">
+            <label
+              htmlFor="country"
+              className="block text-sm font-medium text-gray-700"
+            >
+              City
+              <CityPicker
+                countryCode={selectedCountry?.cca2}
+                selectedCity={selectedCity}
+                setSelectedCity={setSelectedCity}
+              />
+            </label>
+          </div>
+        )}
 
         <div className="flex flex-col justify-end">
           <div>

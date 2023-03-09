@@ -41,6 +41,7 @@ export const CountryPicker = ({
           onChange={(event) => setQuery(event.target.value)}
           displayValue={(country: Country) => country.nameCommon}
           autoComplete="off"
+          placeholder={"Select a country"}
         />
 
         <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">

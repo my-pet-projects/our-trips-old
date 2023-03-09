@@ -1,14 +1,14 @@
 import { api } from "@/utils/api";
 import { Combobox } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/24/solid";
-import type { City, Country } from "@prisma/client";
+import type { City } from "@prisma/client";
 import classNames from "classnames";
 import { useMemo, useState } from "react";
 
 interface CityPickerProps {
   countryCode: string;
-  selectedCity: Country | undefined;
-  setSelectedCity: (value: Country) => void;
+  selectedCity: City | undefined;
+  setSelectedCity: (value: City) => void;
 }
 
 export const CityPicker = ({
@@ -72,7 +72,7 @@ export const CityPicker = ({
           />
         </Combobox.Button>
 
-        {filteredCities && filteredCities.length > 0 && (
+        {filteredCities && filteredCities.length < 100 && (
           <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
             {filteredCities.map((city) => (
               <Combobox.Option
@@ -88,7 +88,7 @@ export const CityPicker = ({
                 {({ active, selected }) => (
                   <>
                     <div className="flex items-center">
-                      <span className="ml-2 flex flex-col">
+                      <span className="ml-2 flex min-w-0 flex-col">
                         <span
                           className={classNames(
                             "truncate leading-tight",
