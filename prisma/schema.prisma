@@ -22,19 +22,37 @@ model Country {
 }
 
 model City {
-    id               String   @id
+    id               String       @id
     name             String
-    alternateNames   String?  @db.Text
-    countryCode      String   @db.VarChar(2)
+    alternateNames   String?      @db.Text
+    countryCode      String       @db.VarChar(2)
     admin1Code       String?
     admin2Code       String?
     admin3Code       String?
     admin4Code       String?
-    modificationDate DateTime @db.Date
+    modificationDate DateTime     @db.Date
     population       Int?
     latitude         Float
     longitude        Float
-    country          Country  @relation(fields: [countryCode], references: [cca2])
+    country          Country      @relation(fields: [countryCode], references: [cca2])
+    Attraction       Attraction[]
 
     @@index([countryCode])
+}
+
+model Attraction {
+    id           Int     @id
+    name         String
+    nameLocal    String?
+    description  String? @db.Text
+    address      String?
+    latitude     Float?
+    longitude    Float?
+    isMustSee    Boolean @default(false)
+    isPredefined Boolean @default(false)
+    originalUri  String?
+    cityId       String
+    city         City    @relation(fields: [cityId], references: [id])
+
+    @@index([cityId])
 }
