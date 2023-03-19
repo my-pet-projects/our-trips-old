@@ -3,26 +3,32 @@ import { useEffect, useState } from "react";
 import { CityPicker } from "./city-picker";
 import { CountryPicker } from "./country-picker";
 
-const GeographyPicker: React.FC = () => {
+const GeographyPicker: React.FC<{
+  country?: Country;
+  city?: City;
+  onCountryChange: (value?: Country | undefined) => void;
+  onCityChange: (value?: City | undefined) => void;
+}> = (props) => {
   const [selectedCountry, setSelectedCountry] = useState<Country | undefined>(
-    undefined
+    props.country
   );
-  const [selectedCity, setSelectedCity] = useState<City | undefined>(undefined);
+  const [selectedCity, setSelectedCity] = useState<City | undefined>(
+    props.city
+  );
 
   useEffect(() => {
     if (selectedCountry?.cca2 !== selectedCity?.countryCode) {
       setSelectedCity(undefined);
     }
-  }, [selectedCountry, selectedCity]);
+    props.onCountryChange(selectedCountry);
+    props.onCityChange(selectedCity);
+  }, [props, selectedCountry, selectedCity]);
 
   return (
     <>
       <div className="mt-6 grid grid-cols-5 gap-6">
-        <div className="col-span-4 sm:col-span-2">
-          <label
-            htmlFor="country"
-            className="block text-sm font-medium text-gray-700"
-          >
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700">
             Country
           </label>
           <CountryPicker
@@ -32,18 +38,15 @@ const GeographyPicker: React.FC = () => {
         </div>
 
         {selectedCountry && (
-          <div className="col-span-4 sm:col-span-2">
-            <label
-              htmlFor="country"
-              className="block text-sm font-medium text-gray-700"
-            >
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700">
               City
-              <CityPicker
-                countryCode={selectedCountry?.cca2}
-                selectedCity={selectedCity}
-                setSelectedCity={setSelectedCity}
-              />
             </label>
+            <CityPicker
+              countryCode={selectedCountry?.cca2}
+              selectedCity={selectedCity}
+              setSelectedCity={setSelectedCity}
+            />
           </div>
         )}
 
@@ -58,7 +61,7 @@ const GeographyPicker: React.FC = () => {
           </div>
         </div>
 
-        <div className="col-span-4 text-xs sm:col-span-2">
+        <div className="col-span-2 text-xs">
           selectedCountry: {JSON.stringify(selectedCountry)}
           <br />
           selectedCity: {JSON.stringify(selectedCity)}
