@@ -41,7 +41,7 @@ model City {
 }
 
 model Attraction {
-    id           Int     @id
+    id           Int     @id @default(autoincrement())
     name         String
     nameLocal    String?
     description  String? @db.Text
