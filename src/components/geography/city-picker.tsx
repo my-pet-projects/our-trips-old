@@ -19,7 +19,7 @@ export const CityPicker = ({
 }: CityPickerProps) => {
   const { data: cities, isLoading } = api.geography.getCities.useQuery(
     {
-      countryCode: countryCode,
+      countryCode: countryCode!,
     },
     {
       enabled: !!countryCode,

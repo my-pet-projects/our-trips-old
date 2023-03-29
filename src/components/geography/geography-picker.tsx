@@ -24,7 +24,9 @@ const GeographyPicker: React.FC<{
     props.onCityChange(selectedCity);
   }, [props, selectedCountry, selectedCity]);
 
-  function onChange(event: string | undefined): void {}
+  function onChange(event: string | undefined): void {
+    console.log(event);
+  }
 
   return (
     <>

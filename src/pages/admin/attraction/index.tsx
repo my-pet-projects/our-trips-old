@@ -3,6 +3,7 @@ import GeographyPicker from "@/components/geography/geography-picker";
 import { api } from "@/utils/api";
 import type { City, Country } from "@prisma/client";
 import Head from "next/head";
+import Link from "next/link";
 import { useState } from "react";
 
 function Attractions() {
@@ -31,12 +32,13 @@ function Attractions() {
           </h1>
         </div>
         <div className="mt-0 ml-4 flex">
-          <button
+          <Link
             type="button"
+            href="/admin/attraction/create"
             className="order-0 inline-flex items-center rounded-md border border-transparent bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 sm:order-1 sm:ml-3"
           >
             Create
-          </button>
+          </Link>
         </div>
       </div>
       {/* Attractions filter */}
@@ -91,12 +93,12 @@ function Attractions() {
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-6 py-3 text-right text-sm font-medium">
-                        <a
-                          href="#"
+                        <Link
+                          href={`/admin/attraction/edit/${attraction.id}`}
                           className="text-indigo-600 hover:text-indigo-900"
                         >
                           Edit
-                        </a>
+                        </Link>
                       </td>
                     </tr>
                   ))}

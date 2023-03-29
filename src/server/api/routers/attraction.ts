@@ -3,6 +3,65 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
 export const attractionRouter = createTRPCRouter({
+  addAttraction: publicProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        cityId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const voteInDb = await ctx.prisma.attraction.create({
+        data: {
+          name: input.name,
+          cityId: input.cityId,
+        },
+      });
+
+      return { success: true, vote: voteInDb };
+    }),
+  updateAttraction: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        cityId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const voteInDb = await ctx.prisma.attraction.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          name: input.name,
+          cityId: input.cityId,
+        },
+      });
+
+      return { success: true, vote: voteInDb };
+    }),
+
+  findAttraction: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return await ctx.prisma.attraction.findFirst({
+        where: {
+          id: input.id,
+        },
+        include: {
+          city: {
+            include: {
+              country: true,
+            },
+          },
+        },
+      });
+    }),
   getAttractions: publicProcedure
     .input(
       z.object({
