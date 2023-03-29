@@ -24,6 +24,8 @@ const GeographyPicker: React.FC<{
     props.onCityChange(selectedCity);
   }, [props, selectedCountry, selectedCity]);
 
+  function onChange(event: string | undefined): void {}
+
   return (
     <>
       <div className="mt-6 grid grid-cols-5 gap-6">
@@ -32,8 +34,9 @@ const GeographyPicker: React.FC<{
             Country
           </label>
           <CountryPicker
-            selectedCountry={selectedCountry}
-            setSelectedCountry={setSelectedCountry}
+            selectedItem={selectedCountry}
+            onSelectedItemChange={setSelectedCountry}
+            onChange={onChange}
           />
         </div>
 
@@ -44,8 +47,9 @@ const GeographyPicker: React.FC<{
             </label>
             <CityPicker
               countryCode={selectedCountry?.cca2}
-              selectedCity={selectedCity}
-              setSelectedCity={setSelectedCity}
+              selectedItem={selectedCity}
+              onSelectedItemChange={setSelectedCity}
+              onChange={onChange}
             />
           </div>
         )}
