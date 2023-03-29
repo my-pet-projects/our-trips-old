@@ -79,10 +79,9 @@ async function main() {
   //   });
   //   await prisma.attraction.upsert({
   //     where: {
-  //       id: item.Id,
+  //       id: item.Id.toString(),
   //     },
   //     create: {
-  //       id: item.Id,
   //       name: item.NameRussian,
   //       nameLocal: item.NameLocal,
   //       description: item.Description,
@@ -93,25 +92,12 @@ async function main() {
   //       isMustSee: item.IsMustSee === "1",
   //       isPredefined: item.IsPredefined === "1",
   //       cityId: city.id,
+  //       oldId: item.Id,
   //     },
   //     update: {},
   //   });
   // }
 }
-
-// item: {
-//   Id: number;
-//   NameRussian: string;
-//   NameLocal: string;
-//   Description: string;
-//   Address: string;
-//   Latitude: number;
-//   Longitude: number;
-//   OriginalUri: string;
-//   IsMustSee: string;
-//   IsPredefined: string;
-//   EnglishCityName: string;
-// }
 
 main()
   .then(async () => {

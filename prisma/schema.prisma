@@ -41,7 +41,7 @@ model City {
 }
 
 model Attraction {
-    id           Int     @id @default(autoincrement())
+    id           String  @id @default(cuid())
     name         String
     nameLocal    String?
     description  String? @db.Text
@@ -53,6 +53,7 @@ model Attraction {
     originalUri  String?
     cityId       String
     city         City    @relation(fields: [cityId], references: [id])
+    oldId        Int?
 
     @@index([cityId])
 }
