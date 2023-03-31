@@ -100,4 +100,31 @@ export const attractionRouter = createTRPCRouter({
         data: result[1],
       };
     }),
+
+  getAllAttractions: publicProcedure
+    .input(
+      z.object({
+        cityId: z.string().optional(),
+        countryCode: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const result = await ctx.prisma.attraction.findMany({
+        take: 1500,
+        where: {
+          cityId: input.cityId,
+          city: {
+            countryCode: input.countryCode,
+          },
+        },
+        include: {
+          city: true,
+        },
+        orderBy: {
+          id: "asc",
+        },
+      });
+
+      return result;
+    }),
 });

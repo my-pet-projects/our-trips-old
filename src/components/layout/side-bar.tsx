@@ -2,6 +2,7 @@ import {
   BriefcaseIcon,
   BuildingLibraryIcon,
   HomeIcon,
+  MapIcon,
 } from "@heroicons/react/24/outline";
 import classNames from "classnames";
 import Link from "next/link";
@@ -15,6 +16,7 @@ const navigation = [
     icon: BuildingLibraryIcon,
   },
   { name: "Trips", href: "/admin/trips", icon: BriefcaseIcon },
+  { name: "Plan", href: "/admin/plans", icon: MapIcon },
 ];
 
 const SideBar: React.FC = () => {
