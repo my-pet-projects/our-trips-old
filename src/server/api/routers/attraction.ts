@@ -110,18 +110,26 @@ export const attractionRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const result = await ctx.prisma.attraction.findMany({
-        take: 1500,
         where: {
           cityId: input.cityId,
           city: {
             countryCode: input.countryCode,
           },
         },
-        include: {
-          city: true,
-        },
         orderBy: {
           id: "asc",
+        },
+        select: {
+          id: true,
+          name: true,
+          city: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          latitude: true,
+          longitude: true,
         },
       });
 

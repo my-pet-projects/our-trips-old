@@ -1,16 +1,11 @@
-import { Attraction } from "@prisma/client";
-import L, {
-  divIcon,
-  icon as i,
-  latLngBounds,
-  Marker as M,
-  point,
-} from "leaflet";
+import { RouterOutputs } from "@/utils/api";
+import L, { divIcon, latLngBounds, point } from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   MapContainer,
   Marker,
+  Popup,
   TileLayer,
   useMap,
   useMapEvents,
@@ -18,9 +13,9 @@ import {
 import MarkerClusterGroup from "./marker-cluster-group";
 
 type ChangeViewProps = {
-  items: Attraction[];
+  items: BasicAttractionInfo[];
 };
-export function ChangeView({ items }: ChangeViewProps) {
+function ChangeView({ items }: ChangeViewProps) {
   const map = useMap();
   if (!items || !items[0]) {
     return null;
@@ -39,19 +34,32 @@ export function ChangeView({ items }: ChangeViewProps) {
   return null;
 }
 
+type BasicAttractionInfo =
+  RouterOutputs["attraction"]["getAllAttractions"][number];
 type MapProps = {
-  items: Attraction[];
+  items: BasicAttractionInfo[];
 };
 
-M.prototype.options.icon = i({
-  iconUrl: "/leaflet/map-marker.svg",
-  iconRetinaUrl: "/leaflet/map-marker.svg",
+const markerIcon = divIcon({
+  html: `<svg class="w-5 h-5 fill-current text-red-500" viewBox="0 0 24 24">
+    <path d="M12 0a8 8 0 0 0-7 12l7 12 7-12a8 8 0 0 0-7-12zm0 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/>
+    <path d="M12 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/>
+  </svg>`,
+  className: "",
   iconSize: [24, 24],
   iconAnchor: [12, 24],
-  shadowUrl: "/leaflet/marker-shadow.png",
-  shadowRetinaUrl: "/leaflet/marker-shadow.png",
-  shadowSize: [41, 41],
-  shadowAnchor: [12, 41],
+  popupAnchor: [0, -24],
+});
+
+const markerCurPositionIcon = divIcon({
+  html: `<svg class="w-5 h-5 fill-current text-blue-500" viewBox="0 0 24 24">
+    <path d="M12 0a8 8 0 0 0-7 12l7 12 7-12a8 8 0 0 0-7-12zm0 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/>
+    <path d="M12 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/>
+  </svg>`,
+  className: "",
+  iconSize: [24, 24],
+  iconAnchor: [12, 24],
+  popupAnchor: [0, -24],
 });
 
 const createClusterCustomIcon = (cluster: L.MarkerCluster) => {
@@ -63,7 +71,7 @@ const createClusterCustomIcon = (cluster: L.MarkerCluster) => {
   });
 };
 
-export const MapCenter = () => {
+const MapCenter = () => {
   const map = useMap();
   const [location, setLocation] = useState(map.getCenter());
   const { lat, lng } = location;
@@ -87,6 +95,37 @@ export const MapCenter = () => {
   );
 };
 
+const LocationMarker = () => {
+  const [position, setPosition] = useState<L.LatLng | null>(null);
+  const [bbox, setBbox] = useState<string[]>([]);
+
+  const map = useMap();
+
+  useEffect(() => {
+    map.locate().on("locationfound", function (e) {
+      setPosition(e.latlng);
+      map.flyTo(e.latlng, map.getZoom());
+      const radius = e.accuracy;
+      const circle = L.circle(e.latlng, radius);
+      circle.addTo(map);
+      setBbox(e.bounds.toBBoxString().split(","));
+    });
+  }, [map]);
+
+  return position === null ? null : (
+    <Marker position={position} icon={markerCurPositionIcon}>
+      <Popup>
+        You are here. <br />
+        Map bbox: <br />
+        <b>Southwest lng</b>: {bbox[0]} <br />
+        <b>Southwest lat</b>: {bbox[1]} <br />
+        <b>Northeast lng</b>: {bbox[2]} <br />
+        <b>Northeast lat</b>: {bbox[3]}
+      </Popup>
+    </Marker>
+  );
+};
+
 export default function Map({ items }: MapProps) {
   return (
     <MapContainer
@@ -107,15 +146,19 @@ export default function Map({ items }: MapProps) {
           if (item.latitude && item.longitude) {
             return (
               <Marker
-                key={item.oldId}
+                key={item.id}
                 position={[item.latitude, item.longitude]}
-              />
+                icon={markerIcon}
+              >
+                <Popup>{item.name}</Popup>
+              </Marker>
             );
           }
         })}
       </MarkerClusterGroup>
       <ChangeView items={items} />
       <MapCenter />
+      <LocationMarker />
     </MapContainer>
   );
 }
