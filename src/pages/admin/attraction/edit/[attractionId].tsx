@@ -61,6 +61,7 @@ const Attraction = () => {
     },
     {
       enabled: isReady,
+      refetchOnWindowFocus: false,
     }
   );
 
@@ -93,11 +94,20 @@ const Attraction = () => {
   }, [selectedCountry, selectedCity]);
 
   const onSubmit: SubmitHandler<FormSchemaType> = (data) => {
-    console.log(data);
+    console.log(data, selectedCity);
+    if (!selectedCity) {
+      return;
+    }
     editAttraction({
       id: attractionId,
       name: data.attractionName,
-      cityId: data.cityId,
+      nameLocal: data.localName,
+      address: data.address,
+      description: data.description,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      originalUri: data.url,
+      cityId: selectedCity.id,
     });
   };
 
@@ -246,7 +256,7 @@ const Attraction = () => {
                       type="text"
                       id="latitude"
                       className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-gray-900 focus:outline-none focus:ring-gray-900 sm:text-sm"
-                      {...register("latitude")}
+                      {...register("latitude", { valueAsNumber: true })}
                     />
                     {errors.latitude && (
                       <span className="mt-2 block text-red-800">
@@ -266,7 +276,7 @@ const Attraction = () => {
                       type="text"
                       id="longitude"
                       className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-gray-900 focus:outline-none focus:ring-gray-900 sm:text-sm"
-                      {...register("longitude")}
+                      {...register("longitude", { valueAsNumber: true })}
                     />
                     {errors.longitude && (
                       <span className="mt-2 block text-red-800">

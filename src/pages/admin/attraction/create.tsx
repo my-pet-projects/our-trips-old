@@ -62,6 +62,12 @@ const AddAttraction = () => {
     }
     createAttraction({
       name: data.attractionName,
+      nameLocal: data.localName,
+      address: data.address,
+      description: data.description,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      originalUri: data.url,
       cityId: selectedCity.id,
     });
   };

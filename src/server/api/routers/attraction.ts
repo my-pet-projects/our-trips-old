@@ -7,6 +7,12 @@ export const attractionRouter = createTRPCRouter({
     .input(
       z.object({
         name: z.string(),
+        nameLocal: z.string().optional().nullable(),
+        address: z.string().optional().nullable(),
+        description: z.string().optional().nullable(),
+        latitude: z.number().optional().nullable(),
+        longitude: z.number().optional().nullable(),
+        originalUri: z.string().optional().nullable(),
         cityId: z.string(),
       })
     )
@@ -14,6 +20,12 @@ export const attractionRouter = createTRPCRouter({
       const voteInDb = await ctx.prisma.attraction.create({
         data: {
           name: input.name,
+          nameLocal: input.nameLocal,
+          address: input.address,
+          description: input.description,
+          latitude: input.latitude,
+          longitude: input.longitude,
+          originalUri: input.originalUri,
           cityId: input.cityId,
         },
       });
@@ -25,6 +37,12 @@ export const attractionRouter = createTRPCRouter({
       z.object({
         id: z.string(),
         name: z.string(),
+        nameLocal: z.string().optional().nullable(),
+        address: z.string().optional().nullable(),
+        description: z.string().optional().nullable(),
+        latitude: z.number().optional().nullable(),
+        longitude: z.number().optional().nullable(),
+        originalUri: z.string().optional().nullable(),
         cityId: z.string(),
       })
     )
@@ -35,6 +53,12 @@ export const attractionRouter = createTRPCRouter({
         },
         data: {
           name: input.name,
+          nameLocal: input.nameLocal,
+          address: input.address,
+          description: input.description,
+          latitude: input.latitude,
+          longitude: input.longitude,
+          originalUri: input.originalUri,
           cityId: input.cityId,
         },
       });
