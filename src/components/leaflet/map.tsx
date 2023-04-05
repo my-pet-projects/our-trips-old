@@ -1,6 +1,7 @@
 import { RouterOutputs } from "@/utils/api";
 import L, { divIcon, latLngBounds, point } from "leaflet";
 import "leaflet/dist/leaflet.css";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   MapContainer,
@@ -150,7 +151,11 @@ export default function Map({ items }: MapProps) {
                 position={[item.latitude, item.longitude]}
                 icon={markerIcon}
               >
-                <Popup>{item.name}</Popup>
+                <Popup>
+                  <span>{item.name}</span>
+                  <br />
+                  <Link href={`/admin/attraction/edit/${item.id}`}>Edit</Link>
+                </Popup>
               </Marker>
             );
           }
