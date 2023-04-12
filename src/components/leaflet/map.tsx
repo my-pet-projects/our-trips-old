@@ -98,34 +98,76 @@ const MapCenter = () => {
 
 const LocationMarker = () => {
   const [position, setPosition] = useState<L.LatLng | null>(null);
+  const [layerGroup, setLayerGroup] = useState<L.LayerGroup>(L.layerGroup());
   const [bbox, setBbox] = useState<string[]>([]);
-
   const map = useMap();
 
   useEffect(() => {
-    map.locate().on("locationfound", function (e) {
-      setPosition(e.latlng);
-      map.flyTo(e.latlng, map.getZoom());
-      const radius = e.accuracy;
-      const circle = L.circle(e.latlng, radius);
-      circle.addTo(map);
-      setBbox(e.bounds.toBBoxString().split(","));
-    });
-  }, [map]);
+    map
+      .locate({
+        // setView: true,
+        maxZoom: 20,
+        watch: true,
+        enableHighAccuracy: true,
+        maximumAge: 150,
+        timeout: 3000000,
+      })
+      .on("locationfound", function (e) {
+        console.log("locationfound");
+        layerGroup.clearLayers();
+        setPosition(e.latlng);
+        // map.flyTo(e.latlng, map.getZoom());
+        const radius = e.accuracy;
+        const circle = L.circle(e.latlng, radius);
+        circle.addTo(layerGroup);
 
-  return position === null ? null : (
-    <Marker position={position} icon={markerCurPositionIcon}>
-      <Popup>
-        You are here. <br />
-        Map bbox: <br />
-        <b>Southwest lng</b>: {bbox[0]} <br />
-        <b>Southwest lat</b>: {bbox[1]} <br />
-        <b>Northeast lng</b>: {bbox[2]} <br />
-        <b>Northeast lat</b>: {bbox[3]}
-      </Popup>
-    </Marker>
-  );
+        const popupContent = L.DomUtil.create("span");
+        popupContent.innerHTML = ` You are here. <br />
+               ${e.latlng.toString()}`;
+        const popup = L.popup({
+          content: popupContent,
+        });
+        const marker = L.marker(e.latlng, { icon: markerCurPositionIcon })
+          .bindPopup(popup)
+          .openPopup()
+          .addTo(layerGroup);
+
+        map.addLayer(layerGroup);
+        setBbox(e.bounds.toBBoxString().split(","));
+      });
+  }, [map, layerGroup]);
+
+  return null;
 };
+
+// const CurrentPosition = () => {
+//   const map = useMap();
+
+//   useEffect(() => {
+//     const legend = new L.Control({ position: "topleft" });
+
+//     legend.onAdd = () => {
+//       const container = L.DomUtil.create(
+//         "div",
+//         "extentControl leaflet-bar leaflet-control leaflet-touch"
+//       );
+//       const btn = L.DomUtil.create("a");
+//       btn.setAttribute(
+//         "style",
+//         'background: #fff; background-image: url("../../assets/globo.jpg"); background-repeat: no-repeat; background-position: center center;'
+//       );
+//       btn.setAttribute("id", "zoomMax");
+//       btn.setAttribute("title", "zoomMax");
+//       container.appendChild(btn);
+//       return container;
+//     };
+
+//     legend.addTo(map);
+
+//     return () => legend.remove();
+//   }, [map]);
+//   return null;
+// };
 
 export default function Map({ items }: MapProps) {
   return (
@@ -164,6 +206,7 @@ export default function Map({ items }: MapProps) {
       <ChangeView items={items} />
       <MapCenter />
       <LocationMarker />
+      {/* <CurrentPosition /> */}
     </MapContainer>
   );
 }
