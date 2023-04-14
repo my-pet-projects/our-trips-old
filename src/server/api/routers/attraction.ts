@@ -47,7 +47,7 @@ export const attractionRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const voteInDb = await ctx.prisma.attraction.update({
+      const attraction = await ctx.prisma.attraction.update({
         where: {
           id: input.id,
         },
@@ -63,7 +63,7 @@ export const attractionRouter = createTRPCRouter({
         },
       });
 
-      return { success: true, vote: voteInDb };
+      return attraction;
     }),
 
   findAttraction: publicProcedure
