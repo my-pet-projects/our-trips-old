@@ -8,8 +8,8 @@ import { useState } from "react";
 
 function Attractions() {
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [city, setCity] = useState<City | undefined>(undefined);
-  const [country, setCountry] = useState<Country | undefined>(undefined);
+  const [city, setCity] = useState<City | null | undefined>(undefined);
+  const [country, setCountry] = useState<Country | null | undefined>(undefined);
   const itemsPerPage = 10;
 
   const { data: result, isLoading } = api.attraction.getAttractions.useQuery({

@@ -4,21 +4,21 @@ import { CityPicker } from "./city-picker";
 import { CountryPicker } from "./country-picker";
 
 const GeographyPicker: React.FC<{
-  country?: Country;
-  city?: City;
-  onCountryChange: (value?: Country | undefined) => void;
-  onCityChange: (value?: City | undefined) => void;
+  country?: Country | null;
+  city?: City | null;
+  onCountryChange: (value?: Country | null) => void;
+  onCityChange: (value?: City | null) => void;
 }> = (props) => {
-  const [selectedCountry, setSelectedCountry] = useState<Country | undefined>(
-    props.country
-  );
-  const [selectedCity, setSelectedCity] = useState<City | undefined>(
+  const [selectedCountry, setSelectedCountry] = useState<
+    Country | null | undefined
+  >(props.country);
+  const [selectedCity, setSelectedCity] = useState<City | null | undefined>(
     props.city
   );
 
   useEffect(() => {
     if (selectedCountry?.cca2 !== selectedCity?.countryCode) {
-      setSelectedCity(undefined);
+      setSelectedCity(null);
     }
     props.onCountryChange(selectedCountry);
     props.onCityChange(selectedCity);
@@ -36,8 +36,8 @@ const GeographyPicker: React.FC<{
             Country
           </label>
           <CountryPicker
-            selectedItem={selectedCountry}
-            onSelectedItemChange={setSelectedCountry}
+            selectedCountry={selectedCountry}
+            onSelectedCountryChange={setSelectedCountry}
             onChange={onChange}
           />
         </div>
@@ -49,8 +49,8 @@ const GeographyPicker: React.FC<{
             </label>
             <CityPicker
               countryCode={selectedCountry?.cca2}
-              selectedItem={selectedCity}
-              onSelectedItemChange={setSelectedCity}
+              selectedCity={selectedCity}
+              onSelectedCityChange={setSelectedCity}
               onChange={onChange}
             />
           </div>

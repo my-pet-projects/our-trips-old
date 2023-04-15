@@ -3,19 +3,20 @@ import type { City } from "@prisma/client";
 import classNames from "classnames";
 import { useCombobox } from "downshift";
 import { useEffect, useState } from "react";
+import { LoadingSpinner } from "../common/loading";
 
 type CityPickerProps = {
-  countryCode: string | undefined;
-  selectedItem: City | null | undefined;
-  onChange: (event: string | undefined) => void;
-  onSelectedItemChange: (changes: City) => void;
+  countryCode?: string;
+  selectedCity?: City | null;
+  onChange: (event?: string) => void;
+  onSelectedCityChange: (city?: City | null) => void;
 };
 
 export const CityPicker = ({
   countryCode,
-  selectedItem,
+  selectedCity,
   onChange,
-  onSelectedItemChange,
+  onSelectedCityChange,
 }: CityPickerProps) => {
   const { data: cities, isLoading } = api.geography.getCities.useQuery(
     {
@@ -26,6 +27,12 @@ export const CityPicker = ({
     }
   );
 
+  const [currentCountryCode, setCurrentCountryCode] = useState<
+    string | undefined
+  >();
+  const [currentCity, setCurrentCity] = useState<City | undefined | null>({
+    name: "",
+  } as City);
   const [allItems, setAllItems] = useState<City[]>([]);
   const [filteredItems, setItems] = useState<City[]>([]);
 
@@ -36,6 +43,16 @@ export const CityPicker = ({
     }
   }, [cities]);
 
+  useEffect(() => {
+    if (!countryCode || countryCode !== currentCountryCode) {
+      setCurrentCity(null);
+    }
+    if (selectedCity && countryCode === currentCountryCode) {
+      setCurrentCity(selectedCity);
+    }
+    setCurrentCountryCode(countryCode);
+  }, [currentCountryCode, countryCode, selectedCity]);
+
   const {
     isOpen,
     getToggleButtonProps,
@@ -45,11 +62,11 @@ export const CityPicker = ({
     getItemProps,
     selectItem,
   } = useCombobox({
+    id: "city-picker",
     onSelectedItemChange: ({ inputValue, selectedItem }) => {
       onChange(inputValue);
-      if (!!selectedItem) {
-        onSelectedItemChange(selectedItem);
-      }
+      onSelectedCityChange(selectedItem);
+      setCurrentCity(selectedItem);
     },
     onInputValueChange: ({ inputValue }) => {
       setItems(
@@ -61,54 +78,61 @@ export const CityPicker = ({
       );
     },
     items: filteredItems,
-    selectedItem,
+    selectedItem: currentCity,
     itemToString(city) {
       return city ? city.name : "";
     },
   });
-
-  if (isLoading) {
-    return <div>Loading ...</div>;
-  }
 
   return (
     <div>
       <div>
         <div className="relative mt-1">
           <input
-            placeholder="Select a city"
+            placeholder={
+              countryCode ? "Select a city" : "Select a country first"
+            }
             autoComplete="off"
-            className="w-full rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
-            {...getInputProps()}
+            className="w-full rounded-md border border-gray-300  py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+            {...getInputProps({ disabled: isLoading })}
           />
-          <button
-            aria-label="clear selection"
-            className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-12 focus:outline-none"
-            type="button"
-            onClick={() => {
-              selectItem(null);
-            }}
-            tabIndex={-1}
-          >
-            &#215;
-          </button>
-          <button
-            aria-label="toggle menu"
-            className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none"
-            type="button"
-            {...getToggleButtonProps()}
-          >
-            {isOpen ? (
-              <span className="h-5 w-5 text-gray-400">&#8593;</span>
-            ) : (
-              <span className="h-5 w-5 text-gray-400">&#8595;</span>
-            )}
-          </button>
+          {isLoading && countryCode && (
+            <div className="absolute inset-y-0 right-0 flex items-center px-2">
+              <LoadingSpinner />
+            </div>
+          )}
+          {!isLoading && (
+            <>
+              <button
+                aria-label="clear selection"
+                className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-12 focus:outline-none"
+                type="button"
+                onClick={() => {
+                  selectItem(null);
+                }}
+                tabIndex={-1}
+              >
+                &#215;
+              </button>
+              <button
+                aria-label="toggle menu"
+                className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none"
+                type="button"
+                {...getToggleButtonProps()}
+              >
+                {isOpen ? (
+                  <span className="h-5 w-5 text-gray-400">&#8593;</span>
+                ) : (
+                  <span className="h-5 w-5 text-gray-400">&#8595;</span>
+                )}
+              </button>
+            </>
+          )}
         </div>
       </div>
       <ul
         className={classNames(
-          "`absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm",
+          "absolute z-10 mt-1 max-h-60 w-2/5 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm",
           !(isOpen && filteredItems.length) ? "hidden" : ""
         )}
         {...getMenuProps()}
@@ -118,7 +142,7 @@ export const CityPicker = ({
             <li
               className={classNames(
                 highlightedIndex === index && "bg-blue-300",
-                selectedItem === item && "font-bold",
+                selectedCity === item && "font-bold",
                 "flex flex-col py-2 px-3 shadow-sm"
               )}
               key={item.id}
@@ -129,7 +153,7 @@ export const CityPicker = ({
                   <span
                     className={classNames(
                       "truncate leading-tight",
-                      selectedItem === item && "font-semibold"
+                      selectedCity === item && "font-semibold"
                     )}
                   >
                     {item.name}
@@ -137,7 +161,7 @@ export const CityPicker = ({
                   <span
                     className={classNames(
                       "truncate text-xs leading-tight text-gray-500",
-                      selectedItem === item
+                      selectedCity === item
                         ? "text-indigo-200"
                         : "text-gray-500"
                     )}
