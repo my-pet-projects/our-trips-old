@@ -1,8 +1,8 @@
 import { RouterOutputs } from "@/utils/api";
-import L, { divIcon, latLngBounds, point } from "leaflet";
+import L, { divIcon, LatLng, latLngBounds, point } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   MapContainer,
   Marker,
@@ -11,6 +11,7 @@ import {
   useMap,
   useMapEvents,
 } from "react-leaflet";
+import { LocationMarker } from "./current-location";
 import MarkerClusterGroup from "./marker-cluster-group";
 
 type ChangeViewProps = {
@@ -43,17 +44,6 @@ type MapProps = {
 
 const markerIcon = divIcon({
   html: `<svg class="w-5 h-5 fill-current text-red-500" viewBox="0 0 24 24">
-    <path d="M12 0a8 8 0 0 0-7 12l7 12 7-12a8 8 0 0 0-7-12zm0 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/>
-    <path d="M12 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/>
-  </svg>`,
-  className: "",
-  iconSize: [24, 24],
-  iconAnchor: [12, 24],
-  popupAnchor: [0, -24],
-});
-
-const markerCurPositionIcon = divIcon({
-  html: `<svg class="w-5 h-5 fill-current text-blue-500" viewBox="0 0 24 24">
     <path d="M12 0a8 8 0 0 0-7 12l7 12 7-12a8 8 0 0 0-7-12zm0 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/>
     <path d="M12 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/>
   </svg>`,
@@ -96,80 +86,13 @@ const MapCenter = () => {
   );
 };
 
-const LocationMarker = () => {
-  const [position, setPosition] = useState<L.LatLng | null>(null);
-  const [layerGroup, setLayerGroup] = useState<L.LayerGroup>(L.layerGroup());
-  const [bbox, setBbox] = useState<string[]>([]);
-  const map = useMap();
-
-  useEffect(() => {
-    map
-      .locate({
-        // setView: true,
-        maxZoom: 20,
-        watch: true,
-        enableHighAccuracy: true,
-        maximumAge: 150,
-        timeout: 3000000,
-      })
-      .on("locationfound", function (e) {
-        console.log("locationfound");
-        layerGroup.clearLayers();
-        setPosition(e.latlng);
-        // map.flyTo(e.latlng, map.getZoom());
-        const radius = e.accuracy;
-        const circle = L.circle(e.latlng, radius);
-        circle.addTo(layerGroup);
-
-        const popupContent = L.DomUtil.create("span");
-        popupContent.innerHTML = ` You are here. <br />
-               ${e.latlng.toString()}`;
-        const popup = L.popup({
-          content: popupContent,
-        });
-        const marker = L.marker(e.latlng, { icon: markerCurPositionIcon })
-          .bindPopup(popup)
-          .openPopup()
-          .addTo(layerGroup);
-
-        map.addLayer(layerGroup);
-        setBbox(e.bounds.toBBoxString().split(","));
-      });
-  }, [map, layerGroup]);
-
-  return null;
-};
-
-// const CurrentPosition = () => {
-//   const map = useMap();
-
-//   useEffect(() => {
-//     const legend = new L.Control({ position: "topleft" });
-
-//     legend.onAdd = () => {
-//       const container = L.DomUtil.create(
-//         "div",
-//         "extentControl leaflet-bar leaflet-control leaflet-touch"
-//       );
-//       const btn = L.DomUtil.create("a");
-//       btn.setAttribute(
-//         "style",
-//         'background: #fff; background-image: url("../../assets/globo.jpg"); background-repeat: no-repeat; background-position: center center;'
-//       );
-//       btn.setAttribute("id", "zoomMax");
-//       btn.setAttribute("title", "zoomMax");
-//       container.appendChild(btn);
-//       return container;
-//     };
-
-//     legend.addTo(map);
-
-//     return () => legend.remove();
-//   }, [map]);
-//   return null;
-// };
-
 export default function Map({ items }: MapProps) {
+  const [userLocation, setUserLocation] = useState<LatLng>();
+
+  function setCurrentPosition(coordinates: LatLng): void {
+    setUserLocation(coordinates);
+  }
+
   return (
     <MapContainer
       zoom={12}
@@ -194,7 +117,9 @@ export default function Map({ items }: MapProps) {
                 icon={markerIcon}
               >
                 <Popup>
-                  <span>{item.name}</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {item.name}
+                  </span>
                   <br />
                   <Link href={`/admin/attraction/edit/${item.id}`}>Edit</Link>
                 </Popup>
@@ -206,6 +131,10 @@ export default function Map({ items }: MapProps) {
       <ChangeView items={items} />
       <MapCenter />
       <LocationMarker />
+      {/* <LeafletMyPosition /> */}
+
+      {/* <LocateControl position="topleft" /> */}
+      {/* <CenterCurrentLocation location={userLocation} /> */}
       {/* <CurrentPosition /> */}
     </MapContainer>
   );
