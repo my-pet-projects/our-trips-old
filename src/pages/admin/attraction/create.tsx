@@ -2,6 +2,7 @@ import { LoadingSpinner } from "@/components/common/loading";
 import { CityPicker } from "@/components/geography/city-picker";
 import { CountryPicker } from "@/components/geography/country-picker";
 import { api } from "@/utils/api";
+import { MapPinIcon } from "@heroicons/react/20/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { City, Country } from "@prisma/client";
 import { ClipboardEvent, useEffect, useState } from "react";
@@ -25,9 +26,16 @@ const formSchema = z.object({
 
 type FormSchemaType = z.infer<typeof formSchema>;
 
+type Coordinates = {
+  latitude: number;
+  longitude: number;
+};
+
 const AddAttraction = () => {
   const [selectedCountry, setSelectedCountry] = useState<Country | null>();
   const [selectedCity, setSelectedCity] = useState<City | null>();
+  const [coordinates, setCoordinates] = useState<Coordinates>();
+  const [url, setUrl] = useState("");
 
   const {
     control,
@@ -43,12 +51,49 @@ const AddAttraction = () => {
 
   const { mutate: createAttraction, isLoading: isCreating } =
     api.attraction.addAttraction.useMutation();
+
+  const {
+    data: parseResult,
+    isLoading,
+    refetch,
+  } = api.attraction.parseAttraction.useQuery(
+    {
+      url: url,
+    },
+    {
+      enabled: false,
+      retry: false,
+      refetchOnWindowFocus: false,
+      onError: (e) => {
+        toast.error(`Failed to parse attraction! ${e.message}`);
+      },
+    }
+  );
+
   useEffect(() => {
     if (selectedCountry?.cca2 !== selectedCity?.countryCode) {
       setSelectedCity(null);
       resetField("cityId", { defaultValue: "" });
     }
   }, [selectedCountry, selectedCity, resetField]);
+
+  useEffect(() => {
+    if (parseResult) {
+      setValue("attractionName", parseResult.name);
+      setValue("localName", parseResult.localName);
+      setValue("description", parseResult.description);
+      setValue("latitude", parseResult.latitude);
+      setValue("longitude", parseResult.longitude);
+      setCoordinates({
+        latitude: parseResult.latitude,
+        longitude: parseResult.longitude,
+      });
+    }
+  }, [parseResult, setValue]);
+
+  const createMapLink = (latitude: number, longitude: number) => {
+    return `https://www.google.com/maps/@${latitude},${longitude},17z`;
+  };
 
   const onSubmit: SubmitHandler<FormSchemaType> = (data) => {
     if (!selectedCity) {
@@ -272,6 +317,21 @@ const AddAttraction = () => {
               )}
             </div>
 
+            {coordinates && (
+              <div className="col-span-1 flex items-end">
+                <a
+                  target="_blank"
+                  href={createMapLink(
+                    coordinates.latitude,
+                    coordinates.longitude
+                  )}
+                  rel="noreferrer"
+                >
+                  <MapPinIcon width={40} />
+                </a>
+              </div>
+            )}
+
             <div className="col-span-2 col-start-1">
               <label
                 htmlFor="url"
@@ -283,8 +343,21 @@ const AddAttraction = () => {
                 type="text"
                 id="url"
                 className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-gray-900 focus:outline-none focus:ring-gray-900 sm:text-sm"
-                {...register("url", { disabled: isCreating })}
+                {...register("url", {
+                  disabled: isCreating,
+                  onChange: (e) => setUrl(e.target.value),
+                })}
               />
+            </div>
+
+            <div className="col-span-1 flex items-end">
+              <button
+                type="button"
+                className="rounded-md border border-transparent bg-gray-800 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
+                onClick={() => refetch()}
+              >
+                Parse
+              </button>
             </div>
 
             <div className="col-span-4 col-start-1">

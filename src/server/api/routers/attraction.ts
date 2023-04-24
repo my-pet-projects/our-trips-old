@@ -1,3 +1,4 @@
+import cheerio from "cheerio";
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "../trpc";
@@ -158,5 +159,38 @@ export const attractionRouter = createTRPCRouter({
       });
 
       return result;
+    }),
+
+  parseAttraction: publicProcedure
+    .input(z.object({ url: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const res = await fetch(input.url);
+      const data = await res.text();
+
+      const cherioRoot = cheerio.load(data);
+      const description = cherioRoot(
+        ".place-descr .place-descr__box .place-descr__txt"
+      )
+        .text()
+        .trim()
+        .replaceAll("\n\n", "\n");
+      const combinedName = cherioRoot(".topline-city .bth__ttl-h2")
+        .text()
+        .trim();
+      const names = /(?<name>.*)\((?<localName>.*)\)/g.exec(combinedName);
+      const mapLink = cherioRoot(".place-descr .place-descr__box .flr")
+        .children()
+        .first()
+        .attr("href");
+      const coordinates = mapLink?.match(/[+-]?([0-9]*[.])?[0-9]+/g);
+
+      return {
+        name: names?.groups?.name || combinedName,
+        localName: names?.groups?.localName || combinedName,
+        latitude: coordinates && coordinates[0] ? +coordinates[0] : 0,
+        longitude: coordinates && coordinates[1] ? +coordinates[1] : 0,
+        description: description,
+        url: input.url,
+      };
     }),
 });
