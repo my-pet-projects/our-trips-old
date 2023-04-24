@@ -10,15 +10,16 @@ datasource db {
 }
 
 model Country {
-    cca2         String  @id @db.VarChar(2)
-    cca3         String  @db.VarChar(3)
-    ccn3         String? @db.VarChar(3)
-    nameCommon   String
-    nameOfficial String
-    region       String
-    subregion    String?
-    flagPng      String
-    cities       City[]
+    cca2             String             @id @db.VarChar(2)
+    cca3             String             @db.VarChar(3)
+    ccn3             String?            @db.VarChar(3)
+    nameCommon       String
+    nameOfficial     String
+    region           String
+    subregion        String?
+    flagPng          String
+    cities           City[]
+    TripDestinations TripDestinations[]
 }
 
 model City {
@@ -56,4 +57,24 @@ model Attraction {
     oldId        Int?
 
     @@index([cityId])
+}
+
+model Trip {
+    id           String             @id @default(cuid())
+    name         String
+    startDate    DateTime?
+    endDate      DateTime?
+    destinations TripDestinations[]
+    oldId        Int?
+}
+
+model TripDestinations {
+    trip      Trip    @relation(fields: [tripId], references: [id])
+    tripId    String
+    country   Country @relation(fields: [countryId], references: [cca2])
+    countryId String
+
+    @@id([tripId, countryId])
+    @@index([tripId])
+    @@index([countryId])
 }
