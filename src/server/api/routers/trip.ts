@@ -16,6 +16,28 @@ export const tripRouter = createTRPCRouter({
     return result;
   }),
 
+  findTrip: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const result = await ctx.prisma.trip.findFirst({
+        where: {
+          id: input.id,
+        },
+        include: {
+          destinations: {
+            include: {
+              country: true,
+            },
+          },
+        },
+      });
+      return result;
+    }),
+
   addTrip: publicProcedure
     .input(
       z.object({

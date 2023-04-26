@@ -87,6 +87,7 @@ export const attractionRouter = createTRPCRouter({
         },
       });
     }),
+
   getAttractions: publicProcedure
     .input(
       z.object({

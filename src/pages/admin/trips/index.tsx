@@ -69,10 +69,16 @@ function Trips() {
                       </td>
                       <td className="whitespace-nowrap px-6 py-3 text-right text-sm font-medium">
                         <Link
-                          href={`/admin/trip/edit/${trip.id}`}
+                          href={`/admin/trips/edit/${trip.id}`}
                           className="text-indigo-600 hover:text-indigo-900"
                         >
                           Edit
+                        </Link>
+                        <Link
+                          href={`/admin/trips/${trip.id}/itinerary`}
+                          className="pl-5 text-indigo-600 hover:text-indigo-900"
+                        >
+                          Itinerary
                         </Link>
                       </td>
                     </tr>

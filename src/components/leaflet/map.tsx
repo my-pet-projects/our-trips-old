@@ -1,57 +1,22 @@
 import { RouterOutputs } from "@/utils/api";
-import L, { divIcon, LatLng, latLngBounds, point } from "leaflet";
+import L, { divIcon, LatLng, point } from "leaflet";
 import "leaflet/dist/leaflet.css";
-import Link from "next/link";
-import { useState } from "react";
-import {
-  MapContainer,
-  Marker,
-  Popup,
-  TileLayer,
-  useMap,
-  useMapEvents,
-} from "react-leaflet";
+import { useEffect, useState } from "react";
+import { MapContainer, TileLayer } from "react-leaflet";
+import { AttractionMarker } from "./attraction-marker";
+import { CurrentCoordinates } from "./current-coordinates";
 import { LocationMarker } from "./current-location";
+import { FitMap } from "./fit-map";
 import MarkerClusterGroup from "./marker-cluster-group";
 
-type ChangeViewProps = {
-  items: BasicAttractionInfo[];
-};
-function ChangeView({ items }: ChangeViewProps) {
-  const map = useMap();
-  if (!items || !items[0]) {
-    return null;
-  }
-
-  const coords = [items[0].latitude, items[0].longitude] as L.LatLngExpression;
-  map.setView(coords, 12);
-
-  const markerBounds = latLngBounds([]);
-  items.forEach((item) => {
-    const coords = [item.latitude, item.longitude] as L.LatLngExpression;
-    markerBounds.extend(coords);
-  });
-  markerBounds.isValid() && map.fitBounds(markerBounds);
-
-  return null;
-}
-
-type BasicAttractionInfo =
+export type BasicAttractionInfo =
   RouterOutputs["attraction"]["getAllAttractions"][number];
+
 type MapProps = {
   items: BasicAttractionInfo[];
+  selectedPoi?: BasicAttractionInfo;
+  onPoiClick: (item: BasicAttractionInfo) => void;
 };
-
-const markerIcon = divIcon({
-  html: `<svg class="w-5 h-5 fill-current text-red-500" viewBox="0 0 24 24">
-    <path d="M12 0a8 8 0 0 0-7 12l7 12 7-12a8 8 0 0 0-7-12zm0 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/>
-    <path d="M12 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/>
-  </svg>`,
-  className: "",
-  iconSize: [24, 24],
-  iconAnchor: [12, 24],
-  popupAnchor: [0, -24],
-});
 
 const createClusterCustomIcon = (cluster: L.MarkerCluster) => {
   return divIcon({
@@ -62,80 +27,66 @@ const createClusterCustomIcon = (cluster: L.MarkerCluster) => {
   });
 };
 
-const MapCenter = () => {
-  const map = useMap();
-  const [location, setLocation] = useState(map.getCenter());
-  const { lat, lng } = location;
-  const text = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-  useMapEvents({
-    move(event) {
-      setLocation((event.target as L.Map).getCenter());
-    },
-    zoom(event) {
-      setLocation((event.target as L.Map).getCenter());
-    },
-  });
-  return (
-    <span
-      className="button absolute top-2 right-2 rounded border-2 border-neutral-400 bg-white px-2 py-1 text-black"
-      style={{ zIndex: 400 }}
-      onClick={() => map.setZoom(13)}
-    >
-      {text}
-    </span>
-  );
-};
-
-export default function Map({ items }: MapProps) {
+export default function Map({ items, selectedPoi, onPoiClick }: MapProps) {
   const [userLocation, setUserLocation] = useState<LatLng>();
+  const [selectedMarker, setSelecterMarker] = useState();
 
-  function setCurrentPosition(coordinates: LatLng): void {
-    setUserLocation(coordinates);
+  const [pois, setPois] = useState(items as AttractionMarker[]);
+
+  useEffect(() => {
+    const newItems = items.map((item) => {
+      if (item.id === selectedPoi?.id) {
+        return { ...item, selected: true };
+      } else {
+        return { ...item, selected: false };
+      }
+    });
+    setPois(newItems);
+  }, [selectedPoi, items]);
+
+  function onMarkerClick(marker: AttractionMarker): void {
+    const newItems = items.map((item) => {
+      if (item.id === marker.id) {
+        return { ...item, selected: true };
+      } else {
+        return { ...item, selected: false };
+      }
+    });
+    setPois(newItems);
+    onPoiClick(marker);
   }
 
   return (
-    <MapContainer
-      zoom={12}
-      style={{ height: "100vh" }}
-      attributionControl={false}
-    >
-      <TileLayer
-        attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <MarkerClusterGroup
-        chunkedLoading
-        iconCreateFunction={createClusterCustomIcon}
-        showCoverageOnHover={false}
+    <>
+      <MapContainer
+        center={[0, 0]}
+        zoom={2}
+        className="h-screen"
+        attributionControl={false}
       >
-        {items?.map((item) => {
-          if (item.latitude && item.longitude) {
-            return (
-              <Marker
-                key={item.id}
-                position={[item.latitude, item.longitude]}
-                icon={markerIcon}
-              >
-                <Popup>
-                  <span className="text-sm font-medium text-gray-900">
-                    {item.name}
-                  </span>
-                  <br />
-                  <Link href={`/admin/attraction/edit/${item.id}`}>Edit</Link>
-                </Popup>
-              </Marker>
-            );
-          }
-        })}
-      </MarkerClusterGroup>
-      <ChangeView items={items} />
-      <MapCenter />
-      <LocationMarker />
-      {/* <LeafletMyPosition /> */}
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <MarkerClusterGroup
+          chunkedLoading
+          iconCreateFunction={createClusterCustomIcon}
+          showCoverageOnHover={false}
+        >
+          {pois?.map((item) => (
+            <AttractionMarker
+              key={item.id}
+              item={item}
+              onClick={onMarkerClick}
+            />
+          ))}
+        </MarkerClusterGroup>
+        <FitMap items={items} />
+        <CurrentCoordinates />
+        <LocationMarker />
+        {/* <LeafletMyPosition /> */}
 
-      {/* <LocateControl position="topleft" /> */}
-      {/* <CenterCurrentLocation location={userLocation} /> */}
-      {/* <CurrentPosition /> */}
-    </MapContainer>
+        {/* <LocateControl position="topleft" /> */}
+        {/* <CenterCurrentLocation location={userLocation} /> */}
+        {/* <CurrentPosition /> */}
+      </MapContainer>
+    </>
   );
 }

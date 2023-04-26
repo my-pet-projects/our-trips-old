@@ -1,12 +1,9 @@
+import { DynamicMap } from "@/components/leaflet/dynamic-map";
+import { BasicAttractionInfo } from "@/components/leaflet/map";
 import { api } from "@/utils/api";
 import type { City, Country } from "@prisma/client";
-import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useState } from "react";
-
-const DynamicMap = dynamic(() => import("@/components/leaflet/map"), {
-  ssr: false,
-});
 
 function Plans() {
   const [city, setCity] = useState<City | undefined>(undefined);
@@ -18,6 +15,10 @@ function Plans() {
       countryCode: country?.cca2,
     }
   );
+
+  function onPoiClick(item: BasicAttractionInfo): void {
+    console.log(item);
+  }
 
   return (
     <>
@@ -39,7 +40,7 @@ function Plans() {
       {!isLoading && result && (
         <div className="mt-8">
           <div className="inline-block min-w-full border-b border-gray-200 align-middle"></div>
-          <DynamicMap items={result} />
+          <DynamicMap items={result} onPoiClick={onPoiClick} />
         </div>
       )}
     </>
