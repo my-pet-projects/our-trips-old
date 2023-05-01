@@ -9,6 +9,7 @@ import { GetStaticProps, NextPage } from "next";
 import Head from "next/head";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { RiDeleteBack2Line } from "react-icons/ri";
 
 export type ItineraryWithPlaces =
   RouterOutputs["itinerary"]["fetchItineraries"][number];
@@ -38,6 +39,9 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
 
   const { mutate: createItinerary, isLoading: isCreating } =
     api.itinerary.createItinerary.useMutation();
+
+  const { mutate: deleteItinerary, isLoading: isDeleting } =
+    api.itinerary.deleteItinerary.useMutation();
 
   const { mutate: addPlace, isLoading: isAdding } =
     api.itinerary.addPlace.useMutation({
@@ -151,6 +155,26 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
     );
   };
 
+  const onDeleteItinerary = (itinerary: Itinerary) => {
+    deleteItinerary(
+      {
+        id: itinerary.id,
+      },
+      {
+        onSuccess: () => {
+          const i = itinerariesWithPlaces.filter(
+            (itin) => itin.id !== itinerary.id
+          );
+
+          setItineraries(i);
+          toast.success("Itinerary deleted!");
+        },
+        onError: () =>
+          toast.error("Failed to delete itinerary! Please try again later."),
+      }
+    );
+  };
+
   return (
     <>
       <Head>
@@ -172,28 +196,38 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                 </div>
               </div>
               {/* Itinerary list */}
-              <div className="flex flex-col gap-3">
+              <div className="mt-5 flex flex-col space-y-5">
                 {itinerariesWithPlaces.map((itinerary, index) => (
-                  <div
-                    key={index}
-                    className="mt-1 border-b border-gray-300 focus-within:border-indigo-600"
-                  >
-                    <input
-                      type="text"
-                      name="name"
-                      id="name"
-                      className="block w-full border-0 border-b border-transparent bg-gray-50 focus:border-indigo-600 focus:ring-0 sm:text-sm"
-                      placeholder={itinerary.name}
-                    />
+                  <div key={index}>
+                    <div className="flex w-full items-center">
+                      <div className="flex-grow border-b border-gray-300 focus-within:border-indigo-600">
+                        <input
+                          type="text"
+                          name="name"
+                          id="name"
+                          className="block w-full border-0 border-b border-transparent bg-gray-50 focus:border-indigo-600 focus:ring-0 sm:text-sm"
+                          placeholder={itinerary.name}
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        className="mr-2 inline-flex items-center rounded-full bg-blue-700 p-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                        onClick={() => onDeleteItinerary(itinerary)}
+                      >
+                        <RiDeleteBack2Line />
+                      </button>
+                    </div>
+
                     <span>
                       {itinerary.places.map((place) => {
                         return (
                           <div key={place.id}>
                             <span>{place.attraction?.name}</span>
                             {/* <span>
-                              {place.attraction?.longitude},{" "}
-                              {place.attraction.latitude}
-                            </span> */}
+        {place.attraction?.longitude},{" "}
+        {place.attraction.latitude}
+      </span> */}
                           </div>
                         );
                       })}
