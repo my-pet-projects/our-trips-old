@@ -2,19 +2,22 @@ import { LoadingPage } from "@/components/common/loading";
 import { DynamicMap } from "@/components/leaflet/dynamic-map";
 import { BasicAttractionInfo } from "@/components/leaflet/map";
 import { PointOfInterestDetails } from "@/components/poi/poi-details";
-import { api } from "@/utils/api";
+import { api, RouterOutputs } from "@/utils/api";
 import { PlusIcon } from "@heroicons/react/20/solid";
+import { Attraction, Itinerary } from "@prisma/client";
 import { GetStaticProps, NextPage } from "next";
 import Head from "next/head";
 import { useState } from "react";
+import toast from "react-hot-toast";
+
+export type ItineraryWithPlaces =
+  RouterOutputs["itinerary"]["fetchItineraries"][number];
 
 const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
   const [selectedPoi, setSelectedPoi] = useState<BasicAttractionInfo>();
-  const [itineraries, setItineraries] = useState([
-    {
-      name: "day 1",
-    },
-  ]);
+  const [itinerariesWithPlaces, setItineraries] = useState<
+    ItineraryWithPlaces[]
+  >([]);
 
   const { data: trip, isLoading: isTripLoading } = api.trip.findTrip.useQuery({
     id: tripId,
@@ -22,6 +25,33 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
 
   const { data: attractions, isLoading: isAttractionsLoading } =
     api.attraction.getAllAttractions.useQuery({ countryCode: "IN" });
+
+  const { isLoading: isItinerariesLoading, refetch } =
+    api.itinerary.fetchItineraries.useQuery(
+      { tripId: tripId },
+      {
+        onSuccess(data) {
+          setItineraries(data);
+        },
+      }
+    );
+
+  const { mutate: createItinerary, isLoading: isCreating } =
+    api.itinerary.createItinerary.useMutation();
+
+  const { mutate: addPlace, isLoading: isAdding } =
+    api.itinerary.addPlace.useMutation({
+      onSuccess: () => toast.success("Place added to the itinerary!"),
+      onError: () =>
+        toast.error("Failed to add place! Please try again later."),
+    });
+
+  const { mutate: removePlace, isLoading: isRemoving } =
+    api.itinerary.removePlace.useMutation({
+      onSuccess: () => toast.success("Place removed from the itinerary!"),
+      onError: () =>
+        toast.error("Failed to remove place! Please try again later."),
+    });
 
   if (isTripLoading) {
     return <LoadingPage />;
@@ -36,9 +66,89 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
   }
 
   const addFields = () => {
-    let newfield = { name: "", age: "" };
+    createItinerary(
+      {
+        name: "day",
+        tripId: tripId,
+        order: 1,
+      },
+      {
+        onSuccess: (data) => {
+          setItineraries([
+            ...itinerariesWithPlaces,
+            data as ItineraryWithPlaces,
+          ]);
+          toast.success("Itinerary created successfully!");
+        },
+        onError: (e) => {
+          const errorMessages = e.data?.zodError?.fieldErrors;
+          if (errorMessages) {
+            for (let key in errorMessages) {
+              let messages = errorMessages[key];
+              if (messages && messages[0]) {
+                toast.error(`${key}: ${messages[0]}`);
+              }
+            }
+          } else {
+            toast.error("Failed to create itinerary! Please try again later.");
+          }
+        },
+      }
+    );
+  };
 
-    setItineraries([...itineraries, newfield]);
+  const onAddToItinerary = (place: Attraction, itinerary: Itinerary): void => {
+    console.log("onAddToItinerary");
+    addPlace(
+      {
+        itineraryId: itinerary.id,
+        placeId: place.id,
+        order: 1,
+      },
+      {
+        onSuccess(data, variables, context) {
+          const i = itinerariesWithPlaces.map((itin) => {
+            if (itin.id === itinerary.id) {
+              return { ...itin, places: [...itin.places, data] };
+            } else {
+              return itin;
+            }
+          });
+
+          setItineraries(i);
+        },
+      }
+    );
+  };
+
+  const onRemoveFromItinerary = (
+    placeId: string,
+    itinerary: Itinerary
+  ): void => {
+    console.log("onRemoveFromItinerary");
+
+    removePlace(
+      {
+        placeId: placeId,
+        itineraryId: itinerary.id,
+      },
+      {
+        onSuccess() {
+          const i = itinerariesWithPlaces.map((itin) => {
+            if (itin.id === itinerary.id) {
+              const places = itin.places.filter(
+                (p) => p.attractionId !== placeId
+              );
+              return { ...itin, places: places };
+            } else {
+              return itin;
+            }
+          });
+
+          setItineraries(i);
+        },
+      }
+    );
   };
 
   return (
@@ -54,7 +164,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
               <div className="flex items-center justify-between border-b border-gray-200 py-4 px-8">
                 <div>
                   <h2 className="text-lg font-medium leading-6 text-gray-900">
-                    Itineraty constructor
+                    Itinerary constructor
                   </h2>
                   <p className="mt-1 text-sm text-gray-500">
                     Build your itinerary for the trip.
@@ -63,7 +173,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
               </div>
               {/* Itinerary list */}
               <div className="flex flex-col gap-3">
-                {itineraries.map((itinerary, index) => (
+                {itinerariesWithPlaces.map((itinerary, index) => (
                   <div
                     key={index}
                     className="mt-1 border-b border-gray-300 focus-within:border-indigo-600"
@@ -75,6 +185,19 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                       className="block w-full border-0 border-b border-transparent bg-gray-50 focus:border-indigo-600 focus:ring-0 sm:text-sm"
                       placeholder={itinerary.name}
                     />
+                    <span>
+                      {itinerary.places.map((place) => {
+                        return (
+                          <div key={place.id}>
+                            <span>{place.attraction?.name}</span>
+                            {/* <span>
+                              {place.attraction?.longitude},{" "}
+                              {place.attraction.latitude}
+                            </span> */}
+                          </div>
+                        );
+                      })}
+                    </span>
                   </div>
                 ))}
 
@@ -102,10 +225,13 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                     />
                   </div>
                   {selectedPoi && (
-                    <div className="absolute bottom-0 z-10 mb-5 h-1/4 w-11/12">
+                    <div className="absolute bottom-0 z-10 mb-5 h-1/3 w-11/12">
                       <PointOfInterestDetails
                         id={selectedPoi.id}
                         onClose={onClose}
+                        availableItineraries={itinerariesWithPlaces || []}
+                        onAddToItinerary={onAddToItinerary}
+                        onRemoveFromItinerary={onRemoveFromItinerary}
                       />
                     </div>
                   )}

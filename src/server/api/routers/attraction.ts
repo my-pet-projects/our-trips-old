@@ -3,6 +3,10 @@ import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
+export type AttractionImage = {
+  src: string;
+};
+
 export const attractionRouter = createTRPCRouter({
   addAttraction: publicProcedure
     .input(
@@ -86,6 +90,36 @@ export const attractionRouter = createTRPCRouter({
           },
         },
       });
+    }),
+
+  findAttractionImages: publicProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        city: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const name = input.name.replaceAll(" ", "+");
+      const url = `https://www.google.com/search?q=${name}&tbm=isch`;
+      const res = await fetch(url);
+      const data = await res.text();
+
+      const attractionImages: AttractionImage[] = [];
+
+      const cherioRoot = cheerio.load(data);
+      const images = cherioRoot("img");
+      images.each((_, element) => {
+        const imgSrc = cherioRoot(element).attr("src");
+        if (!imgSrc?.startsWith("http")) {
+          return;
+        }
+        attractionImages.push({
+          src: imgSrc,
+        });
+      });
+
+      return attractionImages;
     }),
 
   getAttractions: publicProcedure

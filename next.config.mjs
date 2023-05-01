@@ -34,6 +34,11 @@ const config = {
         port: "",
         pathname: "/wikipedia/commons/thumb/**",
       },
+      {
+        protocol: "https",
+        hostname: "*gstatic.com",
+        port: "",
+      },
     ],
   },
 };

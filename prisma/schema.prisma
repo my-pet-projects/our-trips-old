@@ -42,19 +42,20 @@ model City {
 }
 
 model Attraction {
-    id           String  @id @default(cuid())
-    name         String
-    nameLocal    String?
-    description  String? @db.Text
-    address      String?
-    latitude     Float?
-    longitude    Float?
-    isMustSee    Boolean @default(false)
-    isPredefined Boolean @default(false)
-    originalUri  String?
-    cityId       String
-    city         City    @relation(fields: [cityId], references: [id])
-    oldId        Int?
+    id             String           @id @default(cuid())
+    name           String
+    nameLocal      String?
+    description    String?          @db.Text
+    address        String?
+    latitude       Float?
+    longitude      Float?
+    isMustSee      Boolean          @default(false)
+    isPredefined   Boolean          @default(false)
+    originalUri    String?
+    cityId         String
+    city           City             @relation(fields: [cityId], references: [id])
+    oldId          Int?
+    ItineraryPlace ItineraryPlace[]
 
     @@index([cityId])
 }
@@ -66,6 +67,7 @@ model Trip {
     endDate      DateTime?
     destinations TripDestinations[]
     oldId        Int?
+    Itinerary    Itinerary[]
 }
 
 model TripDestinations {
@@ -75,6 +77,31 @@ model TripDestinations {
     countryId String
 
     @@id([tripId, countryId])
+    @@unique([tripId, countryId])
     @@index([tripId])
     @@index([countryId])
+}
+
+model Itinerary {
+    id     String           @id @default(cuid())
+    name   String
+    trip   Trip             @relation(fields: [tripId], references: [id])
+    tripId String
+    order  Int
+    places ItineraryPlace[]
+
+    @@index([tripId])
+}
+
+model ItineraryPlace {
+    id           String     @id @default(cuid())
+    itinerary    Itinerary  @relation(fields: [itineraryId], references: [id])
+    itineraryId  String
+    attraction   Attraction @relation(fields: [attractionId], references: [id])
+    attractionId String
+    order        Int
+
+    @@unique([itineraryId, attractionId])
+    @@index([itineraryId])
+    @@index([attractionId])
 }
