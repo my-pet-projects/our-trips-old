@@ -4,8 +4,7 @@ import {
   createPathComponent,
   extendContext,
 } from "@react-leaflet/core";
-import type { LeafletMouseEventHandlerFn } from "leaflet";
-import L from "leaflet";
+import L, { divIcon, LeafletMouseEventHandlerFn, point } from "leaflet";
 import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
@@ -79,3 +78,12 @@ const MarkerClusterGroup = createPathComponent<
 >(createMarkerClusterGroup, updateMarkerCluster);
 
 export default MarkerClusterGroup;
+
+export const clusterIcon = (cluster: L.MarkerCluster) => {
+  return divIcon({
+    html: `<span>${cluster.getChildCount()}</span>`,
+    className:
+      "bg-[#e74c3c] bg-opacity-100 text-white font-bold !flex items-center justify-center rounded-3xl border-white border-4 border-opacity-50",
+    iconSize: point(40, 40, true),
+  });
+};

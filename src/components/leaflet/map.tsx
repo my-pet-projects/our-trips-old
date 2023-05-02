@@ -1,28 +1,18 @@
 import { BasicAttractionInfo } from "@/server/api/routers/attraction";
 import { Itinerary } from "@/server/api/routers/itinerary";
-import L, { divIcon, point } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { LayersControl, MapContainer, TileLayer } from "react-leaflet";
 import { AttractionMarker, AttractionMarkerData } from "./attraction-marker";
 import { CurrentCoordinates } from "./current-coordinates";
 import { LocationMarker } from "./current-location";
 import { FitMap } from "./fit-map";
-import MarkerClusterGroup from "./marker-cluster-group";
+import MarkerClusterGroup, { clusterIcon } from "./marker-cluster-group";
 
 type MapProps = {
   places: BasicAttractionInfo[];
   itineraries: Itinerary[];
   selectedPoi?: BasicAttractionInfo;
   onPoiClick: (item: BasicAttractionInfo) => void;
-};
-
-const createClusterCustomIcon = (cluster: L.MarkerCluster) => {
-  return divIcon({
-    html: `<span>${cluster.getChildCount()}</span>`,
-    className:
-      "bg-[#e74c3c] bg-opacity-100 text-white font-bold !flex items-center justify-center rounded-3xl border-white border-4 border-opacity-50",
-    iconSize: point(40, 40, true),
-  });
 };
 
 export default function Map({
@@ -48,7 +38,7 @@ export default function Map({
         <LayersControl.Overlay name="All available places" checked>
           <MarkerClusterGroup
             chunkedLoading
-            iconCreateFunction={createClusterCustomIcon}
+            iconCreateFunction={clusterIcon}
             showCoverageOnHover={false}
           >
             {places?.map((place) => (
@@ -72,6 +62,7 @@ export default function Map({
                 key={place.id}
                 item={place.attraction}
                 color={itinerary.color.name}
+                digit={place.order}
                 selected={false}
                 onClick={onMarkerClick}
               />

@@ -102,7 +102,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
       {
         itineraryId: itinerary.id,
         placeId: place.id,
-        order: 1,
+        order: itinerary.places.length + 1,
       },
       {
         onSuccess(data, variables, context) {
