@@ -1,14 +1,11 @@
-import { getColor } from "@/utils/color";
 import { divIcon, LeafletMouseEvent } from "leaflet";
 import { renderToStaticMarkup } from "react-dom/server";
-import { FaMapMarker, FaMapMarkerAlt } from "react-icons/fa";
 import { Marker, Tooltip, useMap } from "react-leaflet";
+import { ItineraryPlaceIcon, PlaceIcon, SelectedPlaceIcon } from "./icon";
 
 const icon = divIcon({
   className: "",
-  html: renderToStaticMarkup(
-    <FaMapMarkerAlt className="h-10 w-10 fill-slate-700" />
-  ),
+  html: renderToStaticMarkup(<PlaceIcon />),
   iconSize: [40, 40],
   iconAnchor: [20, 40],
   popupAnchor: [0, -40],
@@ -18,19 +15,7 @@ const colorizeIcon = (color?: string, digit?: number) => {
   return divIcon({
     className: "",
     html: renderToStaticMarkup(
-      <span>
-        {digit && (
-          <span className="absolute z-10 w-10 text-center text-lg font-medium text-white">
-            {digit}
-          </span>
-        )}
-        <span className="absolute z-0">
-          <FaMapMarker className={`h-10 w-10 fill-white`} />
-        </span>
-        <span className="absolute z-0">
-          <FaMapMarker className={`h-9 w-9 pl-1 pt-0.5 ${color}`} />
-        </span>
-      </span>
+      <ItineraryPlaceIcon digit={digit} color={color} />
     ),
     iconSize: [40, 40],
     iconAnchor: [20, 40],
@@ -40,9 +25,7 @@ const colorizeIcon = (color?: string, digit?: number) => {
 
 const selectedIcon = L.divIcon({
   className: "",
-  html: renderToStaticMarkup(
-    <FaMapMarkerAlt className="h-14 w-14 text-blue-500" />
-  ),
+  html: renderToStaticMarkup(<SelectedPlaceIcon />),
   iconSize: [56, 56],
   iconAnchor: [28, 56],
   popupAnchor: [0, -56],
@@ -93,7 +76,7 @@ export const AttractionMarker = ({
     if (!color) {
       return icon;
     }
-    return colorizeIcon(getColor(color), digit);
+    return colorizeIcon(color, digit);
   };
 
   const defineOffset = () => {

@@ -6,8 +6,6 @@ import {
 } from "@react-leaflet/core";
 import L, { divIcon, LeafletMouseEventHandlerFn, point } from "leaflet";
 import "leaflet.markercluster";
-import "leaflet.markercluster/dist/MarkerCluster.css";
-import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import type React from "react";
 
 type ClusterType = { [key in string]: any };
@@ -80,10 +78,16 @@ const MarkerClusterGroup = createPathComponent<
 export default MarkerClusterGroup;
 
 export const clusterIcon = (cluster: L.MarkerCluster) => {
+  const count = cluster.getChildCount();
   return divIcon({
-    html: `<span>${cluster.getChildCount()}</span>`,
-    className:
-      "bg-[#e74c3c] bg-opacity-100 text-white font-bold !flex items-center justify-center rounded-3xl border-white border-4 border-opacity-50",
+    html: `<span>${count}</span>`,
+    className: `${
+      count < 20
+        ? count < 10
+          ? "bg-green-600"
+          : "bg-yellow-600"
+        : "bg-red-600"
+    }  bg-opacity-100 text-white font-bold !flex items-center justify-center rounded-3xl border-white border-4 border-opacity-50`,
     iconSize: point(40, 40, true),
   });
 };

@@ -2,12 +2,12 @@ import { LoadingSpinner } from "@/components/common/loading";
 import { AppPopover } from "@/components/layout/app-popover";
 import { Itinerary } from "@/server/api/routers/itinerary";
 import { api } from "@/utils/api";
-import { getColor } from "@/utils/color";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { Attraction } from "@prisma/client";
 import Link from "next/link";
 import { ChangeEvent } from "react";
-import { FaMapMarker, FaPen } from "react-icons/fa";
+import { FaPen } from "react-icons/fa";
+import { ItineraryPlaceIcon } from "../leaflet/icon";
 import { PlacesImages as PlaceImages } from "./place-images";
 
 type PointOfInterestDetailsProps = {
@@ -118,23 +118,23 @@ const ItinerarySelectionOption = ({
   return (
     <div className="flex items-center">
       <div>
-        <input
-          id={`itin-${itinerary.id}`}
-          defaultValue={itinerary.name}
-          type="checkbox"
-          defaultChecked={selected}
-          onChange={onChange}
-          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-        />
+        <ItineraryPlaceIcon color={itinerary.color.name} />
+      </div>
+      <div>
         <label
           htmlFor={`itin-${itinerary.id}`}
           className="ml-3 text-sm text-gray-500"
         >
           {itinerary.name}
         </label>
-      </div>
-      <div>
-        <FaMapMarker className={getColor(itinerary.color.name)} />
+        <input
+          id={`itin-${itinerary.id}`}
+          defaultValue={itinerary.name}
+          type="checkbox"
+          defaultChecked={selected}
+          onChange={onChange}
+          className="ml-3 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+        />
       </div>
     </div>
   );

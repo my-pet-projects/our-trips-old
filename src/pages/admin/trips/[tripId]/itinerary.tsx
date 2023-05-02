@@ -1,5 +1,6 @@
 import { LoadingPage } from "@/components/common/loading";
 import { DynamicMap } from "@/components/leaflet/dynamic-map";
+import { ItineraryPlaceIcon } from "@/components/leaflet/icon";
 import { PointOfInterestDetails } from "@/components/poi/poi-details";
 import { BasicAttractionInfo } from "@/server/api/routers/attraction";
 import { Itinerary } from "@/server/api/routers/itinerary";
@@ -217,7 +218,13 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                     <span>
                       {itinerary.places.map((place) => {
                         return (
-                          <div key={place.id}>
+                          <div key={place.id} className="flex items-center">
+                            <div>
+                              <ItineraryPlaceIcon
+                                color={itinerary.color.name}
+                                digit={place.order}
+                              />
+                            </div>
                             <span>{place.attraction?.name}</span>
                             {/* <span>
         {place.attraction?.longitude},{" "}
