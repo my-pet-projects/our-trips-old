@@ -1,19 +1,17 @@
-import { RouterOutputs } from "@/utils/api";
-import L, { divIcon, LatLng, point } from "leaflet";
+import { BasicAttractionInfo } from "@/server/api/routers/attraction";
+import { Itinerary } from "@/server/api/routers/itinerary";
+import L, { divIcon, point } from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useEffect, useState } from "react";
-import { MapContainer, TileLayer } from "react-leaflet";
-import { AttractionMarker } from "./attraction-marker";
+import { LayersControl, MapContainer, TileLayer } from "react-leaflet";
+import { AttractionMarker, AttractionMarkerData } from "./attraction-marker";
 import { CurrentCoordinates } from "./current-coordinates";
 import { LocationMarker } from "./current-location";
 import { FitMap } from "./fit-map";
 import MarkerClusterGroup from "./marker-cluster-group";
 
-export type BasicAttractionInfo =
-  RouterOutputs["attraction"]["getAllAttractions"][number];
-
 type MapProps = {
-  items: BasicAttractionInfo[];
+  places: BasicAttractionInfo[];
+  itineraries: Itinerary[];
   selectedPoi?: BasicAttractionInfo;
   onPoiClick: (item: BasicAttractionInfo) => void;
 };
@@ -27,66 +25,69 @@ const createClusterCustomIcon = (cluster: L.MarkerCluster) => {
   });
 };
 
-export default function Map({ items, selectedPoi, onPoiClick }: MapProps) {
-  const [userLocation, setUserLocation] = useState<LatLng>();
-  const [selectedMarker, setSelecterMarker] = useState();
-
-  const [pois, setPois] = useState(items as AttractionMarker[]);
-
-  useEffect(() => {
-    const newItems = items.map((item) => {
-      if (item.id === selectedPoi?.id) {
-        return { ...item, selected: true };
-      } else {
-        return { ...item, selected: false };
-      }
-    });
-    setPois(newItems);
-  }, [selectedPoi, items]);
-
-  function onMarkerClick(marker: AttractionMarker): void {
-    const newItems = items.map((item) => {
-      if (item.id === marker.id) {
-        return { ...item, selected: true };
-      } else {
-        return { ...item, selected: false };
-      }
-    });
-    setPois(newItems);
-    onPoiClick(marker);
+export default function Map({
+  places,
+  itineraries,
+  selectedPoi,
+  onPoiClick,
+}: MapProps) {
+  function onMarkerClick(marker: AttractionMarkerData): void {
+    const item = places.find((p) => p.id === marker.id);
+    onPoiClick(item!);
   }
 
   return (
-    <>
-      <MapContainer
-        center={[0, 0]}
-        zoom={2}
-        className="h-screen"
-        attributionControl={false}
-      >
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <MarkerClusterGroup
-          chunkedLoading
-          iconCreateFunction={createClusterCustomIcon}
-          showCoverageOnHover={false}
-        >
-          {pois?.map((item) => (
-            <AttractionMarker
-              key={item.id}
-              item={item}
-              onClick={onMarkerClick}
-            />
-          ))}
-        </MarkerClusterGroup>
-        <FitMap items={items} />
-        <CurrentCoordinates />
-        <LocationMarker />
-        {/* <LeafletMyPosition /> */}
+    <MapContainer
+      center={[0, 0]}
+      zoom={2}
+      className="h-screen"
+      attributionControl={false}
+    >
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <LayersControl position="topleft">
+        <LayersControl.Overlay name="All available places" checked>
+          <MarkerClusterGroup
+            chunkedLoading
+            iconCreateFunction={createClusterCustomIcon}
+            showCoverageOnHover={false}
+          >
+            {places?.map((place) => (
+              <AttractionMarker
+                key={place.id}
+                item={place}
+                selected={place.id === selectedPoi?.id}
+                onClick={onMarkerClick}
+              />
+            ))}
+          </MarkerClusterGroup>
+        </LayersControl.Overlay>
+        {itineraries?.map((itinerary) => (
+          <LayersControl.Overlay
+            key={itinerary.id}
+            name={itinerary.name}
+            checked
+          >
+            {itinerary.places?.map((place) => (
+              <AttractionMarker
+                key={place.id}
+                item={place.attraction}
+                color={itinerary.color.name}
+                selected={false}
+                onClick={onMarkerClick}
+              />
+            ))}
+          </LayersControl.Overlay>
+        ))}
+      </LayersControl>
 
-        {/* <LocateControl position="topleft" /> */}
-        {/* <CenterCurrentLocation location={userLocation} /> */}
-        {/* <CurrentPosition /> */}
-      </MapContainer>
-    </>
+      <FitMap items={places} />
+      <CurrentCoordinates />
+      <LocationMarker />
+      {/* <LeafletMyPosition /> */}
+
+      {/* <LocateControl position="topleft" /> */}
+      {/* <CenterCurrentLocation location={userLocation} /> */}
+      {/* <CurrentPosition /> */}
+    </MapContainer>
   );
 }

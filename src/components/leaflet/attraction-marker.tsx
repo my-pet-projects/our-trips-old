@@ -1,18 +1,26 @@
+import { getColor } from "@/utils/color";
 import { MapPinIcon } from "@heroicons/react/20/solid";
 import { divIcon, LeafletMouseEvent } from "leaflet";
-import Link from "next/link";
-import { useState } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { Marker, Popup, Tooltip, useMap } from "react-leaflet";
-import { BasicAttractionInfo } from "./map";
+import { Marker, Tooltip, useMap } from "react-leaflet";
 
 const icon = divIcon({
   className: "",
-  html: renderToStaticMarkup(<MapPinIcon className="h-6 w-6 text-red-500" />),
+  html: renderToStaticMarkup(<MapPinIcon className="h-6 w-6 fill-slate-700" />),
   iconSize: [24, 24],
   iconAnchor: [12, 24],
   popupAnchor: [0, -24],
 });
+
+const colorizeIcon = (color?: string) => {
+  return divIcon({
+    className: "",
+    html: renderToStaticMarkup(<MapPinIcon className={`h-6 w-6 ${color}`} />),
+    iconSize: [24, 24],
+    iconAnchor: [12, 24],
+    popupAnchor: [0, -24],
+  });
+};
 
 const selectedIcon = L.divIcon({
   className: "",
@@ -25,16 +33,27 @@ const selectedIcon = L.divIcon({
   tooltipAnchor: [0, -40],
 });
 
-export type AttractionMarker = BasicAttractionInfo & { selected: boolean };
-
-type AttractionMarkerProps = {
-  item: AttractionMarker;
-  onClick: (item: AttractionMarker) => void;
+export type AttractionMarkerData = {
+  id: string;
+  name: string;
+  latitude: number | null;
+  longitude: number | null;
 };
 
-export const AttractionMarker = ({ item, onClick }: AttractionMarkerProps) => {
+type AttractionMarkerProps = {
+  item: AttractionMarkerData;
+  color?: string;
+  selected: boolean;
+  onClick: (item: AttractionMarkerData) => void;
+};
+
+export const AttractionMarker = ({
+  item,
+  color,
+  selected,
+  onClick,
+}: AttractionMarkerProps) => {
   const map = useMap();
-  const [selected, setSelected] = useState(false);
 
   function onMarkerClick(event: LeafletMouseEvent): void {
     let zoom = map.getZoom();
@@ -42,8 +61,6 @@ export const AttractionMarker = ({ item, onClick }: AttractionMarkerProps) => {
       zoom = 14;
     }
     map.flyTo(event.latlng, zoom);
-    // item.selected = true;
-    setSelected(true);
     onClick(item);
   }
 
@@ -51,19 +68,26 @@ export const AttractionMarker = ({ item, onClick }: AttractionMarkerProps) => {
     return null;
   }
 
+  const getIcon = () => {
+    if (selected) {
+      return selectedIcon;
+    }
+    if (!color) {
+      return icon;
+    }
+    return colorizeIcon(getColor(color));
+  };
+
   return (
     <Marker
       position={[item.latitude, item.longitude]}
-      icon={item.selected ? selectedIcon : icon}
+      icon={getIcon()}
       eventHandlers={{ click: onMarkerClick }}
+      zIndexOffset={color || selected ? 1 : 0}
     >
       <Tooltip>
         <span className="text-sm font-medium text-gray-900">{item.name}</span>
       </Tooltip>
-      <Popup>
-        <br />
-        <Link href={`/admin/attraction/edit/${item.id}`}>Edit</Link>
-      </Popup>
     </Marker>
   );
 };

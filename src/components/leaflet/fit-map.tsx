@@ -1,7 +1,7 @@
+import { BasicAttractionInfo } from "@/server/api/routers/attraction";
 import { latLngBounds } from "leaflet";
 import { useEffect } from "react";
 import { useMap } from "react-leaflet";
-import { BasicAttractionInfo } from "./map";
 
 type FitMapProps = {
   items: BasicAttractionInfo[];

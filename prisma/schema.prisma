@@ -83,14 +83,17 @@ model TripDestinations {
 }
 
 model Itinerary {
-    id     String           @id @default(cuid())
-    name   String
-    trip   Trip             @relation(fields: [tripId], references: [id])
-    tripId String
-    order  Int
-    places ItineraryPlace[]
+    id      String           @id @default(cuid())
+    name    String
+    trip    Trip             @relation(fields: [tripId], references: [id])
+    tripId  String
+    order   Int
+    places  ItineraryPlace[]
+    colorId Int
+    color   Color            @relation(fields: [colorId], references: [id])
 
     @@index([tripId])
+    @@index([colorId])
 }
 
 model ItineraryPlace {
@@ -104,4 +107,10 @@ model ItineraryPlace {
     @@unique([itineraryId, attractionId])
     @@index([itineraryId])
     @@index([attractionId])
+}
+
+model Color {
+    id        Int         @id @default(autoincrement())
+    name      String
+    Itinerary Itinerary[]
 }

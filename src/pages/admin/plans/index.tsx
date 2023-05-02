@@ -1,5 +1,5 @@
 import { DynamicMap } from "@/components/leaflet/dynamic-map";
-import { BasicAttractionInfo } from "@/components/leaflet/map";
+import { BasicAttractionInfo } from "@/server/api/routers/attraction";
 import { api } from "@/utils/api";
 import type { City, Country } from "@prisma/client";
 import Head from "next/head";
@@ -40,7 +40,11 @@ function Plans() {
       {!isLoading && result && (
         <div className="mt-8">
           <div className="inline-block min-w-full border-b border-gray-200 align-middle"></div>
-          <DynamicMap items={result} onPoiClick={onPoiClick} />
+          <DynamicMap
+            places={result}
+            onPoiClick={onPoiClick}
+            itineraries={[]}
+          />
         </div>
       )}
     </>

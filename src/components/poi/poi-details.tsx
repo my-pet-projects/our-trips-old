@@ -1,16 +1,19 @@
 import { LoadingSpinner } from "@/components/common/loading";
 import { AppPopover } from "@/components/layout/app-popover";
-import { ItineraryWithPlaces } from "@/pages/admin/trips/[tripId]/itinerary";
+import { Itinerary } from "@/server/api/routers/itinerary";
 import { api } from "@/utils/api";
+import { getColor } from "@/utils/color";
 import { XMarkIcon } from "@heroicons/react/20/solid";
-import { Attraction, Itinerary } from "@prisma/client";
+import { Attraction } from "@prisma/client";
+import Link from "next/link";
 import { ChangeEvent } from "react";
+import { FaMapMarker, FaPen } from "react-icons/fa";
 import { PlacesImages as PlaceImages } from "./place-images";
 
 type PointOfInterestDetailsProps = {
   id: string;
   onClose: () => void;
-  availableItineraries: ItineraryWithPlaces[];
+  availableItineraries: Itinerary[];
   onAddToItinerary: (placeId: Attraction, itinerary: Itinerary) => void;
   onRemoveFromItinerary: (placeId: string, itinerary: Itinerary) => void;
 };
@@ -66,6 +69,14 @@ export const PointOfInterestDetails = ({
                   </div>
                 </AppPopover>
 
+                <Link
+                  href={`/admin/attraction/edit/${id}`}
+                  target="_blank"
+                  className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                  <FaPen aria-hidden="true" />
+                </Link>
+
                 <button
                   type="button"
                   className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
@@ -105,21 +116,26 @@ const ItinerarySelectionOption = ({
   };
 
   return (
-    <div>
-      <input
-        id={`itin-${itinerary.id}`}
-        defaultValue={itinerary.name}
-        type="checkbox"
-        defaultChecked={selected}
-        onChange={onChange}
-        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-      />
-      <label
-        htmlFor={`itin-${itinerary.id}`}
-        className="ml-3 text-sm text-gray-500"
-      >
-        {itinerary.name}
-      </label>
+    <div className="flex items-center">
+      <div>
+        <input
+          id={`itin-${itinerary.id}`}
+          defaultValue={itinerary.name}
+          type="checkbox"
+          defaultChecked={selected}
+          onChange={onChange}
+          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+        />
+        <label
+          htmlFor={`itin-${itinerary.id}`}
+          className="ml-3 text-sm text-gray-500"
+        >
+          {itinerary.name}
+        </label>
+      </div>
+      <div>
+        <FaMapMarker className={getColor(itinerary.color.name)} />
+      </div>
     </div>
   );
 };

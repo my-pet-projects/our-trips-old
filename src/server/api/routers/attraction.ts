@@ -1,11 +1,15 @@
 import cheerio from "cheerio";
 import { z } from "zod";
 
+import { RouterOutputs } from "@/utils/api";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
 export type AttractionImage = {
   src: string;
 };
+
+export type BasicAttractionInfo =
+  RouterOutputs["attraction"]["getAllAttractions"][number];
 
 export const attractionRouter = createTRPCRouter({
   addAttraction: publicProcedure

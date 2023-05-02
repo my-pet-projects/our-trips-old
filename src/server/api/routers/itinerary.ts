@@ -1,6 +1,8 @@
+import { RouterOutputs } from "@/utils/api";
 import { z } from "zod";
-
 import { createTRPCRouter, publicProcedure } from "../trpc";
+
+export type Itinerary = RouterOutputs["itinerary"]["fetchItineraries"][number];
 
 export const itineraryRouter = createTRPCRouter({
   fetchItineraries: publicProcedure
@@ -20,6 +22,7 @@ export const itineraryRouter = createTRPCRouter({
               attraction: true,
             },
           },
+          color: true,
         },
       });
       return result;
@@ -31,6 +34,7 @@ export const itineraryRouter = createTRPCRouter({
         name: z.string(),
         tripId: z.string(),
         order: z.number(),
+        colorId: z.number(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -39,6 +43,7 @@ export const itineraryRouter = createTRPCRouter({
           name: input.name,
           tripId: input.tripId,
           order: input.order,
+          colorId: input.colorId,
         },
         include: {
           places: true,

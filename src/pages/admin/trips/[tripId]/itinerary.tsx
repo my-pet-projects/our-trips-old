@@ -1,24 +1,20 @@
 import { LoadingPage } from "@/components/common/loading";
 import { DynamicMap } from "@/components/leaflet/dynamic-map";
-import { BasicAttractionInfo } from "@/components/leaflet/map";
 import { PointOfInterestDetails } from "@/components/poi/poi-details";
-import { api, RouterOutputs } from "@/utils/api";
+import { BasicAttractionInfo } from "@/server/api/routers/attraction";
+import { Itinerary } from "@/server/api/routers/itinerary";
+import { api } from "@/utils/api";
 import { PlusIcon } from "@heroicons/react/20/solid";
-import { Attraction, Itinerary } from "@prisma/client";
+import { Attraction } from "@prisma/client";
 import { GetStaticProps, NextPage } from "next";
 import Head from "next/head";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { RiDeleteBack2Line } from "react-icons/ri";
 
-export type ItineraryWithPlaces =
-  RouterOutputs["itinerary"]["fetchItineraries"][number];
-
 const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
   const [selectedPoi, setSelectedPoi] = useState<BasicAttractionInfo>();
-  const [itinerariesWithPlaces, setItineraries] = useState<
-    ItineraryWithPlaces[]
-  >([]);
+  const [itinerariesWithPlaces, setItineraries] = useState<Itinerary[]>([]);
 
   const { data: trip, isLoading: isTripLoading } = api.trip.findTrip.useQuery({
     id: tripId,
@@ -31,6 +27,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
     api.itinerary.fetchItineraries.useQuery(
       { tripId: tripId },
       {
+        enabled: !!attractions,
         onSuccess(data) {
           setItineraries(data);
         },
@@ -75,13 +72,11 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
         name: "day",
         tripId: tripId,
         order: 1,
+        colorId: itinerariesWithPlaces.length + 1, // TODO: make smth smarter
       },
       {
         onSuccess: (data) => {
-          setItineraries([
-            ...itinerariesWithPlaces,
-            data as ItineraryWithPlaces,
-          ]);
+          setItineraries([...itinerariesWithPlaces, data as Itinerary]);
           toast.success("Itinerary created successfully!");
         },
         onError: (e) => {
@@ -253,7 +248,8 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                 <div className="flex h-screen flex-col items-center ">
                   <div className="z-0 h-full w-full">
                     <DynamicMap
-                      items={attractions || []}
+                      places={attractions || []}
+                      itineraries={itinerariesWithPlaces}
                       selectedPoi={selectedPoi}
                       onPoiClick={onPoiClick}
                     />
