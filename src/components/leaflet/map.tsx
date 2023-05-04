@@ -1,18 +1,39 @@
 import { BasicAttractionInfo } from "@/server/api/routers/attraction";
 import { Itinerary } from "@/server/api/routers/itinerary";
+import { Attraction } from "@prisma/client";
 import "leaflet/dist/leaflet.css";
 import { LayersControl, MapContainer, TileLayer } from "react-leaflet";
 import { AttractionMarker, AttractionMarkerData } from "./attraction-marker";
 import { CurrentCoordinates } from "./current-coordinates";
 import { LocationMarker } from "./current-location";
 import { FitMap } from "./fit-map";
+import { LocatePlace } from "./locate-place";
 import MarkerClusterGroup, { clusterIcon } from "./marker-cluster-group";
 
 type MapProps = {
   places: BasicAttractionInfo[];
   itineraries: Itinerary[];
-  selectedPoi?: BasicAttractionInfo;
+  selectedPoi?: BasicAttractionInfo | Attraction;
   onPoiClick: (item: BasicAttractionInfo) => void;
+};
+
+const getAvailablePlaces = (
+  places: BasicAttractionInfo[],
+  itineraries: Itinerary[]
+) => {
+  const availablePlaces = places.map((place) => {
+    let visible = true;
+    itineraries.forEach((itin) => {
+      itin.places.forEach((itinPlace) => {
+        if (itinPlace.attractionId === place.id) {
+          visible = false;
+          return;
+        }
+      });
+    });
+    return { ...place, hidden: visible };
+  });
+  return availablePlaces;
 };
 
 export default function Map({
@@ -21,10 +42,14 @@ export default function Map({
   selectedPoi,
   onPoiClick,
 }: MapProps) {
-  function onMarkerClick(marker: AttractionMarkerData): void {
-    const item = places.find((p) => p.id === marker.id);
-    onPoiClick(item!);
-  }
+  const availablePlaces = getAvailablePlaces(places, itineraries);
+
+  const onMarkerClick = (marker: AttractionMarkerData) => {
+    const place = places.find((place) => place.id === marker.id);
+    if (place) {
+      onPoiClick(place);
+    }
+  };
 
   return (
     <MapContainer
@@ -41,14 +66,17 @@ export default function Map({
             iconCreateFunction={clusterIcon}
             showCoverageOnHover={false}
           >
-            {places?.map((place) => (
-              <AttractionMarker
-                key={place.id}
-                item={place}
-                selected={place.id === selectedPoi?.id}
-                onClick={onMarkerClick}
-              />
-            ))}
+            {availablePlaces?.map(
+              (place) =>
+                place.hidden && (
+                  <AttractionMarker
+                    key={place.id}
+                    item={place}
+                    selected={false}
+                    onClick={onMarkerClick}
+                  />
+                )
+            )}
           </MarkerClusterGroup>
         </LayersControl.Overlay>
         {itineraries?.map((itinerary) => (
@@ -74,6 +102,16 @@ export default function Map({
       <FitMap items={places} />
       <CurrentCoordinates />
       <LocationMarker />
+      {selectedPoi && (
+        <>
+          <AttractionMarker
+            item={selectedPoi}
+            selected={true}
+            onClick={onMarkerClick}
+          />
+          <LocatePlace item={selectedPoi} />
+        </>
+      )}
       {/* <LeafletMyPosition /> */}
 
       {/* <LocateControl position="topleft" /> */}

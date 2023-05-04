@@ -10,7 +10,7 @@ const ControlClasses = {
 
 type ControlPosition = keyof typeof ControlClasses;
 
-export interface LeafLetControlProps {
+interface LeafLetControlProps {
   position?: ControlPosition;
   children?: React.ReactNode;
 }

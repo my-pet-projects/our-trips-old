@@ -6,15 +6,19 @@ import { BasicAttractionInfo } from "@/server/api/routers/attraction";
 import { Itinerary } from "@/server/api/routers/itinerary";
 import { api } from "@/utils/api";
 import { PlusIcon } from "@heroicons/react/20/solid";
-import { Attraction } from "@prisma/client";
+import { Attraction, ItineraryPlace } from "@prisma/client";
+import classNames from "classnames";
 import { GetStaticProps, NextPage } from "next";
 import Head from "next/head";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { FaTrash } from "react-icons/fa";
 import { RiDeleteBack2Line } from "react-icons/ri";
 
 const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
-  const [selectedPoi, setSelectedPoi] = useState<BasicAttractionInfo>();
+  const [selectedPoi, setSelectedPoi] = useState<
+    BasicAttractionInfo | Attraction
+  >();
   const [itinerariesWithPlaces, setItineraries] = useState<Itinerary[]>([]);
 
   const { data: trip, isLoading: isTripLoading } = api.trip.findTrip.useQuery({
@@ -59,7 +63,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
     return <LoadingPage />;
   }
 
-  function onPoiClick(item: BasicAttractionInfo): void {
+  function onPoiClick(item: BasicAttractionInfo | Attraction): void {
     setSelectedPoi(item);
   }
 
@@ -215,25 +219,17 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                       </button>
                     </div>
 
-                    <span>
-                      {itinerary.places.map((place) => {
-                        return (
-                          <div key={place.id} className="flex items-center">
-                            <div>
-                              <ItineraryPlaceIcon
-                                color={itinerary.color.name}
-                                digit={place.order}
-                              />
-                            </div>
-                            <span>{place.attraction?.name}</span>
-                            {/* <span>
-        {place.attraction?.longitude},{" "}
-        {place.attraction.latitude}
-      </span> */}
-                          </div>
-                        );
-                      })}
-                    </span>
+                    <div className="space-y-5">
+                      {itinerary.places.map((place) => (
+                        <ItineraryPlaceElement
+                          key={place.id}
+                          place={place}
+                          selected={selectedPoi?.id === place.attractionId}
+                          itineraryColor={itinerary.color.name}
+                          onClick={onPoiClick}
+                        />
+                      ))}
+                    </div>
                   </div>
                 ))}
 
@@ -262,7 +258,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                     />
                   </div>
                   {selectedPoi && (
-                    <div className="absolute bottom-0 z-10 mb-5 h-1/3 w-11/12">
+                    <div className="absolute bottom-0 z-10 mb-5 h-2/5 w-11/12">
                       <PointOfInterestDetails
                         id={selectedPoi.id}
                         onClose={onClose}
@@ -301,3 +297,55 @@ export const getStaticPaths = () => {
 };
 
 export default TripItineraryPage;
+
+type ItineraryPlaceProps = {
+  place: ItineraryPlace & {
+    attraction: Attraction;
+  };
+  selected: boolean;
+  itineraryColor: string;
+  onClick: (attraction: Attraction) => void;
+};
+
+const ItineraryPlaceElement = ({
+  place,
+  selected,
+  itineraryColor,
+  onClick,
+}: ItineraryPlaceProps) => {
+  const onDelete = () => {};
+
+  return (
+    <div
+      onClick={() => onClick(place.attraction)}
+      className={classNames(
+        "group flex flex-row items-center gap-5 rounded-lg border border-gray-200 bg-white p-4 shadow transition duration-300 ease-in-out hover:cursor-pointer hover:shadow-lg",
+        selected ? "shadow-xl" : ""
+      )}
+    >
+      <div
+        className={classNames("flex items-center", selected ? "scale-150" : "")}
+      >
+        <ItineraryPlaceIcon color={itineraryColor} digit={place.order} />
+      </div>
+      <div>
+        <h5 className="text-xl font-medium leading-tight text-neutral-800">
+          {place.attraction?.name}
+          <br />
+          <small className="text-neutral-500">
+            {place.attraction.nameLocal}
+          </small>
+        </h5>
+      </div>
+      <div className="invisible ml-auto group-hover:visible">
+        <button
+          type="button"
+          className="bg-white text-gray-400 hover:text-gray-500"
+          onClick={onDelete}
+        >
+          <FaTrash />
+        </button>
+      </div>
+    </div>
+  );
+};

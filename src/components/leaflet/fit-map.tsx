@@ -3,15 +3,11 @@ import { latLngBounds } from "leaflet";
 import { useEffect } from "react";
 import { useMap } from "react-leaflet";
 
-type FitMapProps = {
-  items: BasicAttractionInfo[];
-};
-
-export function FitMap({ items }: FitMapProps) {
+export function FitMap({ items }: { items: BasicAttractionInfo[] }) {
   const map = useMap();
 
   useEffect(() => {
-    if (!items || !items[0]) {
+    if (!items) {
       return;
     }
 
