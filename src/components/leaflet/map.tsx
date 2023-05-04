@@ -1,6 +1,5 @@
 import { BasicAttractionInfo } from "@/server/api/routers/attraction";
 import { Itinerary } from "@/server/api/routers/itinerary";
-import { Attraction } from "@prisma/client";
 import "leaflet/dist/leaflet.css";
 import { LayersControl, MapContainer, TileLayer } from "react-leaflet";
 import { AttractionMarker, AttractionMarkerData } from "./attraction-marker";
@@ -13,7 +12,7 @@ import MarkerClusterGroup, { clusterIcon } from "./marker-cluster-group";
 type MapProps = {
   places: BasicAttractionInfo[];
   itineraries: Itinerary[];
-  selectedPoi?: BasicAttractionInfo | Attraction;
+  selectedPoi?: BasicAttractionInfo;
   onPoiClick: (item: BasicAttractionInfo) => void;
 };
 

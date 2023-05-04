@@ -3,6 +3,8 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
 export type Itinerary = RouterOutputs["itinerary"]["fetchItineraries"][number];
+export type ItineraryPlace = Itinerary["places"][number];
+export type ItineraryPlaceAttraction = ItineraryPlace["attraction"];
 
 export const itineraryRouter = createTRPCRouter({
   fetchItineraries: publicProcedure
@@ -19,7 +21,11 @@ export const itineraryRouter = createTRPCRouter({
         include: {
           places: {
             include: {
-              attraction: true,
+              attraction: {
+                include: {
+                  city: true,
+                },
+              },
             },
           },
           color: true,
@@ -83,7 +89,11 @@ export const itineraryRouter = createTRPCRouter({
           order: input.order,
         },
         include: {
-          attraction: true,
+          attraction: {
+            include: {
+              city: true,
+            },
+          },
         },
       });
       return result;

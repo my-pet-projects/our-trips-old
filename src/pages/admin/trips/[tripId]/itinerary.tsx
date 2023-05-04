@@ -3,10 +3,14 @@ import { DynamicMap } from "@/components/leaflet/dynamic-map";
 import { ItineraryPlaceIcon } from "@/components/leaflet/icon";
 import { PointOfInterestDetails } from "@/components/poi/poi-details";
 import { BasicAttractionInfo } from "@/server/api/routers/attraction";
-import { Itinerary } from "@/server/api/routers/itinerary";
+import {
+  Itinerary,
+  ItineraryPlace,
+  ItineraryPlaceAttraction,
+} from "@/server/api/routers/itinerary";
 import { api } from "@/utils/api";
 import { PlusIcon } from "@heroicons/react/20/solid";
-import { Attraction, ItineraryPlace } from "@prisma/client";
+import { Attraction } from "@prisma/client";
 import classNames from "classnames";
 import { GetStaticProps, NextPage } from "next";
 import Head from "next/head";
@@ -16,10 +20,8 @@ import { FaTrash } from "react-icons/fa";
 import { RiDeleteBack2Line } from "react-icons/ri";
 
 const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
-  const [selectedPoi, setSelectedPoi] = useState<
-    BasicAttractionInfo | Attraction
-  >();
-  const [itinerariesWithPlaces, setItineraries] = useState<Itinerary[]>([]);
+  const [selectedPoi, setSelectedPoi] = useState<BasicAttractionInfo>();
+  const [itineraries, setItineraries] = useState<Itinerary[]>([]);
 
   const { data: trip, isLoading: isTripLoading } = api.trip.findTrip.useQuery({
     id: tripId,
@@ -28,7 +30,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
   const { data: attractions, isLoading: isAttractionsLoading } =
     api.attraction.getAllAttractions.useQuery({ countryCode: "IN" });
 
-  const { isLoading: isItinerariesLoading, refetch } =
+  const { isLoading: isItinerariesLoading } =
     api.itinerary.fetchItineraries.useQuery(
       { tripId: tripId },
       {
@@ -63,7 +65,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
     return <LoadingPage />;
   }
 
-  function onPoiClick(item: BasicAttractionInfo | Attraction): void {
+  function onPoiClick(item: BasicAttractionInfo): void {
     setSelectedPoi(item);
   }
 
@@ -77,11 +79,11 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
         name: "day",
         tripId: tripId,
         order: 1,
-        colorId: itinerariesWithPlaces.length + 1, // TODO: make smth smarter
+        colorId: itineraries.length + 1, // TODO: make smth smarter
       },
       {
         onSuccess: (data) => {
-          setItineraries([...itinerariesWithPlaces, data as Itinerary]);
+          setItineraries([...itineraries, data as Itinerary]);
           toast.success("Itinerary created successfully!");
         },
         onError: (e) => {
@@ -102,7 +104,6 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
   };
 
   const onAddToItinerary = (place: Attraction, itinerary: Itinerary): void => {
-    console.log("onAddToItinerary");
     addPlace(
       {
         itineraryId: itinerary.id,
@@ -110,16 +111,14 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
         order: itinerary.places.length + 1,
       },
       {
-        onSuccess(data, variables, context) {
-          const i = itinerariesWithPlaces.map((itin) => {
+        onSuccess(data) {
+          const modifiedItineraries = itineraries.map((itin) => {
             if (itin.id === itinerary.id) {
-              return { ...itin, places: [...itin.places, data] };
-            } else {
-              return itin;
+              itin.places.push(data);
             }
+            return itin;
           });
-
-          setItineraries(i);
+          setItineraries(modifiedItineraries);
         },
       }
     );
@@ -129,8 +128,6 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
     placeId: string,
     itinerary: Itinerary
   ): void => {
-    console.log("onRemoveFromItinerary");
-
     removePlace(
       {
         placeId: placeId,
@@ -138,7 +135,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
       },
       {
         onSuccess() {
-          const i = itinerariesWithPlaces.map((itin) => {
+          const modifyItineraries = itineraries.map((itin) => {
             if (itin.id === itinerary.id) {
               const places = itin.places.filter(
                 (p) => p.attractionId !== placeId
@@ -148,8 +145,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
               return itin;
             }
           });
-
-          setItineraries(i);
+          setItineraries(modifyItineraries);
         },
       }
     );
@@ -162,11 +158,10 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
       },
       {
         onSuccess: () => {
-          const i = itinerariesWithPlaces.filter(
+          const modifiedItineraries = itineraries.filter(
             (itin) => itin.id !== itinerary.id
           );
-
-          setItineraries(i);
+          setItineraries(modifiedItineraries);
           toast.success("Itinerary deleted!");
         },
         onError: () =>
@@ -197,7 +192,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
               </div>
               {/* Itinerary list */}
               <div className="mt-5 flex flex-col space-y-5">
-                {itinerariesWithPlaces.map((itinerary, index) => (
+                {itineraries.map((itinerary, index) => (
                   <div key={index}>
                     <div className="flex w-full items-center">
                       <div className="flex-grow border-b border-gray-300 focus-within:border-indigo-600">
@@ -219,7 +214,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                       </button>
                     </div>
 
-                    <div className="space-y-5">
+                    <div className="space-y-5 pt-5">
                       {itinerary.places.map((place) => (
                         <ItineraryPlaceElement
                           key={place.id}
@@ -252,7 +247,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                   <div className="z-0 h-full w-full">
                     <DynamicMap
                       places={attractions || []}
-                      itineraries={itinerariesWithPlaces}
+                      itineraries={itineraries}
                       selectedPoi={selectedPoi}
                       onPoiClick={onPoiClick}
                     />
@@ -262,7 +257,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                       <PointOfInterestDetails
                         id={selectedPoi.id}
                         onClose={onClose}
-                        availableItineraries={itinerariesWithPlaces || []}
+                        availableItineraries={itineraries || []}
                         onAddToItinerary={onAddToItinerary}
                         onRemoveFromItinerary={onRemoveFromItinerary}
                       />
@@ -299,12 +294,10 @@ export const getStaticPaths = () => {
 export default TripItineraryPage;
 
 type ItineraryPlaceProps = {
-  place: ItineraryPlace & {
-    attraction: Attraction;
-  };
+  place: ItineraryPlace;
   selected: boolean;
   itineraryColor: string;
-  onClick: (attraction: Attraction) => void;
+  onClick: (attraction: ItineraryPlaceAttraction) => void;
 };
 
 const ItineraryPlaceElement = ({
