@@ -125,12 +125,12 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
   };
 
   const onRemoveFromItinerary = (
-    placeId: string,
+    place: Attraction,
     itinerary: Itinerary
   ): void => {
     removePlace(
       {
-        placeId: placeId,
+        placeId: place.id,
         itineraryId: itinerary.id,
       },
       {
@@ -138,7 +138,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
           const modifyItineraries = itineraries.map((itin) => {
             if (itin.id === itinerary.id) {
               const places = itin.places.filter(
-                (p) => p.attractionId !== placeId
+                (p) => p.attractionId !== place.id
               );
               return { ...itin, places: places };
             } else {
@@ -220,8 +220,9 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                           key={place.id}
                           place={place}
                           selected={selectedPoi?.id === place.attractionId}
-                          itineraryColor={itinerary.color.name}
+                          itinerary={itinerary}
                           onClick={onPoiClick}
+                          onDelete={onRemoveFromItinerary}
                         />
                       ))}
                     </div>
@@ -296,18 +297,21 @@ export default TripItineraryPage;
 type ItineraryPlaceProps = {
   place: ItineraryPlace;
   selected: boolean;
-  itineraryColor: string;
+  itinerary: Itinerary;
   onClick: (attraction: ItineraryPlaceAttraction) => void;
+  onDelete: (
+    attraction: ItineraryPlaceAttraction,
+    itinerary: Itinerary
+  ) => void;
 };
 
 const ItineraryPlaceElement = ({
   place,
   selected,
-  itineraryColor,
+  itinerary,
   onClick,
+  onDelete,
 }: ItineraryPlaceProps) => {
-  const onDelete = () => {};
-
   return (
     <div
       onClick={() => onClick(place.attraction)}
@@ -319,7 +323,7 @@ const ItineraryPlaceElement = ({
       <div
         className={classNames("flex items-center", selected ? "scale-150" : "")}
       >
-        <ItineraryPlaceIcon color={itineraryColor} digit={place.order} />
+        <ItineraryPlaceIcon color={itinerary.color.name} digit={place.order} />
       </div>
       <div>
         <h5 className="text-xl font-medium leading-tight text-neutral-800">
@@ -334,7 +338,7 @@ const ItineraryPlaceElement = ({
         <button
           type="button"
           className="bg-white text-gray-400 hover:text-gray-500"
-          onClick={onDelete}
+          onClick={() => onDelete(place.attraction, itinerary)}
         >
           <FaTrash />
         </button>

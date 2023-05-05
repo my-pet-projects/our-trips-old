@@ -14,8 +14,8 @@ type PointOfInterestDetailsProps = {
   id: string;
   onClose: () => void;
   availableItineraries: Itinerary[];
-  onAddToItinerary: (placeId: Attraction, itinerary: Itinerary) => void;
-  onRemoveFromItinerary: (placeId: string, itinerary: Itinerary) => void;
+  onAddToItinerary: (place: Attraction, itinerary: Itinerary) => void;
+  onRemoveFromItinerary: (place: Attraction, itinerary: Itinerary) => void;
 };
 
 export const PointOfInterestDetails = ({
@@ -37,7 +37,7 @@ export const PointOfInterestDetails = ({
     if (selected) {
       onAddToItinerary(poi, itinerary);
     } else {
-      onRemoveFromItinerary(poi.id, itinerary);
+      onRemoveFromItinerary(poi, itinerary);
     }
   };
 
