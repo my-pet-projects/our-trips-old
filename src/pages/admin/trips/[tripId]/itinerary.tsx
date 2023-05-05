@@ -1,4 +1,5 @@
 import { LoadingPage } from "@/components/common/loading";
+import { DropdownMenu } from "@/components/layout/drop-down-menu";
 import { DynamicMap } from "@/components/leaflet/dynamic-map";
 import { ItineraryPlaceIcon } from "@/components/leaflet/icon";
 import { PointOfInterestDetails } from "@/components/poi/poi-details";
@@ -16,8 +17,7 @@ import { GetStaticProps, NextPage } from "next";
 import Head from "next/head";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { FaTrash } from "react-icons/fa";
-import { RiDeleteBack2Line } from "react-icons/ri";
+import { FaEdit, FaTrash } from "react-icons/fa";
 
 const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
   const [selectedPoi, setSelectedPoi] = useState<BasicAttractionInfo>();
@@ -205,13 +205,24 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                         />
                       </div>
 
-                      <button
-                        type="button"
-                        className="mr-2 inline-flex items-center rounded-full bg-blue-700 p-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                        onClick={() => onDeleteItinerary(itinerary)}
-                      >
-                        <RiDeleteBack2Line />
-                      </button>
+                      <DropdownMenu>
+                        <button
+                          className="group flex w-full items-center"
+                          type="button"
+                          onClick={() => {}}
+                        >
+                          <FaEdit className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+                          Edit
+                        </button>
+                        <button
+                          className="group flex w-full items-center"
+                          type="button"
+                          onClick={() => onDeleteItinerary(itinerary)}
+                        >
+                          <FaTrash className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+                          Delete
+                        </button>
+                      </DropdownMenu>
                     </div>
 
                     <div className="space-y-5 pt-5">
