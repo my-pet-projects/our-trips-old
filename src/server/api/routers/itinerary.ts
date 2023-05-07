@@ -58,6 +58,25 @@ export const itineraryRouter = createTRPCRouter({
       return result;
     }),
 
+  updateItinerary: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string().min(1),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.prisma.itinerary.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          name: input.name,
+        },
+      });
+      return result;
+    }),
+
   deleteItinerary: publicProcedure
     .input(
       z.object({
