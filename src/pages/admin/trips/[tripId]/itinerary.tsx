@@ -23,13 +23,14 @@ import { FaEdit, FaTrash } from "react-icons/fa";
 const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
   const [selectedPoi, setSelectedPoi] = useState<BasicAttractionInfo>();
   const [itineraries, setItineraries] = useState<Itinerary[]>([]);
+  const ctx = api.useContext();
 
   const { data: trip, isLoading: isTripLoading } = api.trip.findTrip.useQuery({
     id: tripId,
   });
 
   const { data: attractions, isLoading: isAttractionsLoading } =
-    api.attraction.getAllAttractions.useQuery({ countryCode: "IN" });
+    api.attraction.getAllAttractions.useQuery({ countryCode: "CZ" });
 
   const { isLoading: isItinerariesLoading } =
     api.itinerary.fetchItineraries.useQuery(
@@ -74,17 +75,17 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
     setSelectedPoi(undefined);
   }
 
-  const addFields = () => {
+  const addItinerary = () => {
     createItinerary(
       {
-        name: "day",
+        name: `Day ${itineraries.length + 1}`,
         tripId: tripId,
         order: 1,
         colorId: itineraries.length + 1, // TODO: make smth smarter
       },
       {
         onSuccess: (data) => {
-          setItineraries([...itineraries, data as Itinerary]);
+          ctx.itinerary.fetchItineraries.invalidate();
           toast.success("Itinerary created successfully!");
         },
         onError: (e) => {
@@ -207,7 +208,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                 <button
                   type="button"
                   className="inline-flex items-center self-start rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-sm font-medium leading-4 text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                  onClick={addFields}
+                  onClick={addItinerary}
                 >
                   <PlusIcon
                     className="-ml-0.5 mr-2 h-4 w-4"
