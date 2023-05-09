@@ -19,8 +19,8 @@ export const attractionRouter = createTRPCRouter({
         nameLocal: z.string().optional().nullable(),
         address: z.string().optional().nullable(),
         description: z.string().optional().nullable(),
-        latitude: z.number().optional().nullable(),
-        longitude: z.number().optional().nullable(),
+        latitude: z.number(),
+        longitude: z.number(),
         originalUri: z.string().optional().nullable(),
         cityId: z.string(),
       })
@@ -49,8 +49,8 @@ export const attractionRouter = createTRPCRouter({
         nameLocal: z.string().optional().nullable(),
         address: z.string().optional().nullable(),
         description: z.string().optional().nullable(),
-        latitude: z.number().optional().nullable(),
-        longitude: z.number().optional().nullable(),
+        latitude: z.number(),
+        longitude: z.number(),
         originalUri: z.string().optional().nullable(),
         cityId: z.string(),
       })

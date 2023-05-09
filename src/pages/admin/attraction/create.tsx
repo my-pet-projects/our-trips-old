@@ -1,6 +1,7 @@
 import { LoadingSpinner } from "@/components/common/loading";
 import { CityPicker } from "@/components/geography/city-picker";
 import { CountryPicker } from "@/components/geography/country-picker";
+import { Coordinates } from "@/types/coordinates";
 import { api } from "@/utils/api";
 import { MapPinIcon } from "@heroicons/react/20/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,8 +17,8 @@ const formSchema = z.object({
   localName: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
-  latitude: z.number().optional().nullable(),
-  longitude: z.number().optional().nullable(),
+  latitude: z.number(),
+  longitude: z.number(),
   url: z.string().optional().nullable(),
   countryId: z.string().min(1, "Country is required"),
   cityId: z.string().min(1, "City is required"),
@@ -25,11 +26,6 @@ const formSchema = z.object({
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
-
-type Coordinates = {
-  latitude: number;
-  longitude: number;
-};
 
 const AddAttraction = () => {
   const [selectedCountry, setSelectedCountry] = useState<Country | null>();
@@ -92,7 +88,7 @@ const AddAttraction = () => {
   }, [parseResult, setValue]);
 
   const createMapLink = (latitude: number, longitude: number) => {
-    return `https://www.google.com/maps/@${latitude},${longitude},17z`;
+    return `https://www.google.com/maps/@${latitude},${longitude},20z`;
   };
 
   const onSubmit: SubmitHandler<FormSchemaType> = (data) => {
@@ -119,8 +115,8 @@ const AddAttraction = () => {
             attractionName: "",
             localName: "",
             address: "",
-            latitude: null,
-            longitude: null,
+            latitude: 0,
+            longitude: 0,
             url: "",
             description: "",
           });

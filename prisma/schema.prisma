@@ -47,8 +47,8 @@ model Attraction {
     nameLocal      String?
     description    String?          @db.Text
     address        String?
-    latitude       Float?
-    longitude      Float?
+    latitude       Float            @default(0)
+    longitude      Float            @default(0)
     isMustSee      Boolean          @default(false)
     isPredefined   Boolean          @default(false)
     originalUri    String?
