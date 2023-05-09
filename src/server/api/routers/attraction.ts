@@ -203,33 +203,67 @@ export const attractionRouter = createTRPCRouter({
   parseAttraction: publicProcedure
     .input(z.object({ url: z.string() }))
     .query(async ({ ctx, input }) => {
-      const res = await fetch(input.url);
-      const data = await res.text();
-
-      const cherioRoot = cheerio.load(data);
-      const description = cherioRoot(
-        ".place-descr .place-descr__box .place-descr__txt"
-      )
-        .text()
-        .trim()
-        .replaceAll("\n\n", "\n");
-      const combinedName = cherioRoot(".topline-city .bth__ttl-h2")
-        .text()
-        .trim();
-      const names = /(?<name>.*)\((?<localName>.*)\)/g.exec(combinedName);
-      const mapLink = cherioRoot(".place-descr .place-descr__box .flr")
-        .children()
-        .first()
-        .attr("href");
-      const coordinates = mapLink?.match(/[+-]?([0-9]*[.])?[0-9]+/g);
-
-      return {
-        name: names?.groups?.name || combinedName,
-        localName: names?.groups?.localName || combinedName,
-        latitude: coordinates && coordinates[0] ? +coordinates[0] : 0,
-        longitude: coordinates && coordinates[1] ? +coordinates[1] : 0,
-        description: description,
-        url: input.url,
-      };
+      if (input.url.includes("www.votpusk.ru")) {
+        return parseVotpuskSite(input.url);
+      }
+      return parseRutravellerSite(input.url);
     }),
 });
+
+const parseRutravellerSite = async (url: string) => {
+  const res = await fetch(url);
+  const data = await res.text();
+
+  const cherioRoot = cheerio.load(data);
+  const description = cherioRoot(
+    ".place-descr .place-descr__box .place-descr__txt"
+  )
+    .text()
+    .trim()
+    .replaceAll("\n\n", "\n");
+  const combinedName = cherioRoot(".topline-city .bth__ttl-h2").text().trim();
+  const names = /(?<name>.*)\((?<localName>.*)\)/g.exec(combinedName);
+  const mapLink = cherioRoot(".place-descr .place-descr__box .flr")
+    .children()
+    .first()
+    .attr("href");
+  const coordinates = mapLink?.match(/[+-]?([0-9]*[.])?[0-9]+/g);
+
+  return {
+    name: names?.groups?.name || combinedName,
+    localName: names?.groups?.localName || combinedName,
+    latitude: coordinates && coordinates[0] ? +coordinates[0] : 0,
+    longitude: coordinates && coordinates[1] ? +coordinates[1] : 0,
+    description: description,
+    url: url,
+  };
+};
+
+const parseVotpuskSite = async (url: string) => {
+  const res = await fetch(url);
+  const data = await res.text();
+
+  const cherioRoot = cheerio.load(data);
+  const description = cherioRoot(".landmark-info__text p")
+    .text()
+    .trim()
+    .replaceAll("\n\n", "\n");
+  const name = cherioRoot(".block-head__title").text().trim();
+  const subText = cherioRoot(".block-head__subtitle").text().trim();
+  const localName = /Название на английском языке - (?<localName>.*)./g.exec(
+    subText
+  );
+  const coordinates =
+    /\"latitude\"\:(?<lat>[0-9]*[.][0-9]*),"longitude":(?<lon>[0-9]*[.][0-9]*)/g.exec(
+      cherioRoot.html()
+    );
+
+  return {
+    name: name,
+    localName: localName?.groups?.localName || name,
+    description: description,
+    latitude: coordinates?.groups?.lat ? +coordinates.groups.lat : 0,
+    longitude: coordinates?.groups?.lon ? +coordinates.groups.lon : 0,
+    url: url,
+  };
+};
