@@ -2,6 +2,7 @@ import { LoadingPage, LoadingSpinner } from "@/components/common/loading";
 import { CityPicker } from "@/components/geography/city-picker";
 import { CountryPicker } from "@/components/geography/country-picker";
 import { CityMapDynamic } from "@/components/leaflet/city-map-dynamic";
+import { Coordinates } from "@/types/coordinates";
 import { api } from "@/utils/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { City, Country } from "@prisma/client";
@@ -147,6 +148,11 @@ const Attraction = () => {
     setValue("longitude", +coordinates[1]);
   }
 
+  const onCoordinatesChange = (value: Coordinates) => {
+    setValue("latitude", value.latitude);
+    setValue("longitude", value.longitude);
+  };
+
   if (isLoading) {
     return <LoadingPage />;
   }
@@ -268,6 +274,7 @@ const Attraction = () => {
                 <CityMapDynamic
                   cities={nearestCities}
                   selectedCity={result.city}
+                  onChange={onCoordinatesChange}
                   coordinates={{
                     latitude: result.latitude,
                     longitude: result.longitude,

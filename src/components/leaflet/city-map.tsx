@@ -5,11 +5,13 @@ import "leaflet/dist/leaflet.css";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MapContainer, Marker, Popup, TileLayer, Tooltip } from "react-leaflet";
 import { PlaceIcon, SelectedPlaceIcon } from "./icon";
+import { MarkerDraggable } from "./marker-draggable";
 
 type CityMapProps = {
   cities?: City[];
   coordinates: Coordinates;
   selectedCity?: City;
+  onChange: (value: Coordinates) => void;
 };
 
 const icon = divIcon({
@@ -32,6 +34,7 @@ export default function Map({
   cities,
   coordinates,
   selectedCity,
+  onChange,
 }: CityMapProps) {
   return (
     <MapContainer
@@ -60,10 +63,7 @@ export default function Map({
         </Marker>
       ))}
 
-      <Marker
-        position={[coordinates.latitude, coordinates.longitude]}
-        icon={centerIcon}
-      />
+      <MarkerDraggable coordinates={coordinates} onChange={onChange} />
       {selectedCity && (
         <Marker
           position={[selectedCity.latitude, selectedCity.longitude]}
