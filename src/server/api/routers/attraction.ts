@@ -187,7 +187,7 @@ export const attractionRouter = createTRPCRouter({
     .input(
       z.object({
         cityId: z.string().optional(),
-        countryCode: z.string().optional(),
+        countryCodes: z.array(z.string()).optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -195,7 +195,9 @@ export const attractionRouter = createTRPCRouter({
         where: {
           cityId: input.cityId,
           city: {
-            countryCode: input.countryCode,
+            countryCode: {
+              in: input.countryCodes,
+            },
           },
         },
         orderBy: {

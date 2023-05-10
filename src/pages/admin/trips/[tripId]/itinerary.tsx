@@ -36,7 +36,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
 
   const { data: attractions, isLoading: isAttractionsLoading } =
     api.attraction.getAllAttractions.useQuery(
-      { countryCode: "CZ" },
+      { countryCodes: trip?.destinations.map((dest) => dest.country.cca2) },
       { refetchOnWindowFocus: false }
     );
 
