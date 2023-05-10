@@ -1,48 +1,57 @@
+import { LoadingSpinner } from "@/components/common/loading";
+import { AttractionInfo } from "@/server/api/routers/attraction";
 import { api } from "@/utils/api";
-import { Attraction } from "@prisma/client";
 import Image from "next/image";
+import { FaGoogle } from "react-icons/fa";
 
 type PlaceImagesProps = {
-  place: Attraction;
+  place: AttractionInfo;
 };
 
 export const PlacesImages = ({ place }: PlaceImagesProps) => {
   const { data: images, isLoading } =
     api.attraction.findAttractionImages.useQuery({
       name: place.nameLocal ?? place.name,
+      city: place.city.name,
     });
 
+  const googleSearchUrl = () =>
+    `https://www.google.com/search?q=${place.nameLocal}+${place.city.name}&tbm=isch`;
+
   return (
-    <div>
-      <div className="container mx-auto px-5 py-2 lg:px-32 lg:pt-12">
-        <div className="-m-1 flex flex-wrap md:-m-2">
-          {images?.map((image, idx) => (
-            <div key={idx} className="flex w-1/3 flex-wrap">
-              <div className="w-full p-1 md:p-2">
-                <img
+    <div className="mt-5 flex flex-col">
+      {isLoading && (
+        <div className="flex justify-center">
+          <LoadingSpinner size={40} />
+        </div>
+      )}
+      {!isLoading && (
+        <>
+          <div className="-ml-2 -mr-2 flex flex-wrap">
+            {images?.map((image, idx) => (
+              <div key={idx} className="flex w-1/3 p-2">
+                <Image
                   alt="gallery"
-                  className="block h-full w-full rounded-lg object-cover object-center"
+                  className="block h-full max-h-40 w-full rounded-lg object-cover object-center"
                   src={image.src}
+                  width={200}
+                  height={200}
                 />
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 px-5 py-2 md:grid-cols-5">
-        {images?.map((image, idx) => (
-          <div key={idx}>
-            <Image
-              className="h-auto max-w-full rounded-lg"
-              src={image.src}
-              alt=""
-              width={200}
-              height={200}
-            />
+            ))}
           </div>
-        ))}
-      </div>
+          <div className="pt-5">
+            <a
+              href={googleSearchUrl()}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1 hover:text-blue-600"
+            >
+              <FaGoogle /> Search results
+            </a>
+          </div>
+        </>
+      )}
     </div>
   );
 };

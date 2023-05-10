@@ -10,16 +10,15 @@ export function FitMap({ items }: { items: BasicAttractionInfo[] }) {
     if (!items) {
       return;
     }
-
     const markerBounds = latLngBounds([]);
     items.forEach((item) => {
+      if (item.latitude === 0 && item.longitude === 0) {
+        return;
+      }
       const latLng = [item.latitude, item.longitude] as L.LatLngExpression;
       markerBounds.extend(latLng);
     });
     markerBounds.isValid() && map.fitBounds(markerBounds);
-
-    // TODO:remove
-    // map.setView([28.5944, 77.227], 13);
   }, [items, map]);
 
   return null;

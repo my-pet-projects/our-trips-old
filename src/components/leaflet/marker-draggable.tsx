@@ -1,6 +1,6 @@
 import { Coordinates } from "@/types/coordinates";
 import { divIcon } from "leaflet";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Marker } from "react-leaflet";
 import { SelectedPlaceIcon } from "./icon";
@@ -13,15 +13,15 @@ type MarkerDraggableProps = {
 const centerIcon = divIcon({
   className: "",
   html: renderToStaticMarkup(<SelectedPlaceIcon />),
-  iconSize: [40, 40],
-  iconAnchor: [20, 40],
-  popupAnchor: [0, -40],
+  iconSize: [56, 56],
+  iconAnchor: [28, 56],
 });
 
 export const MarkerDraggable = ({
   coordinates,
   onChange,
 }: MarkerDraggableProps) => {
+  const [position, setPosition] = useState(coordinates);
   const markerRef = useRef<L.Marker>(null);
 
   const eventHandlers = useMemo(
@@ -29,10 +29,12 @@ export const MarkerDraggable = ({
       dragend() {
         const marker = markerRef.current;
         if (marker != null) {
-          onChange({
+          const newCoordinates = {
             latitude: marker.getLatLng().lat,
             longitude: marker.getLatLng().lng,
-          });
+          };
+          setPosition(newCoordinates);
+          onChange(newCoordinates);
         }
       },
     }),
@@ -43,7 +45,7 @@ export const MarkerDraggable = ({
     <Marker
       draggable={true}
       eventHandlers={eventHandlers}
-      position={{ lat: coordinates.latitude, lng: coordinates.longitude }}
+      position={{ lat: position.latitude, lng: position.longitude }}
       icon={centerIcon}
       ref={markerRef}
     ></Marker>

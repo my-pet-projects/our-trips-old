@@ -88,7 +88,9 @@ export const PointOfInterestDetails = ({
               </div>
             </div>
             <div className="overflow-y-auto p-6 text-sm">
-              <div>{poi.description}</div>
+              <div>
+                <p className="text-justify">{poi.description}</p>
+              </div>
               <div>
                 <PlaceImages place={poi} />
               </div>

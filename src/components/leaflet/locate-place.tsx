@@ -13,12 +13,12 @@ export const LocatePlace = ({ item }: { item: AttractionMarkerData }) => {
 
     const latLng = [item.latitude, item.longitude] as L.LatLngExpression;
     const offsetX = 0;
-    const offsetY = 150;
-    let center = map.project(latLng);
-    center = L.point(center.x + offsetX, center.y + offsetY);
-    const target = map.unproject(center);
+    const offsetY = -200;
+    const offsetPoint = L.point(offsetX, offsetY);
+    const targetPoint = map.project(latLng, zoom).subtract(offsetPoint);
+    const targetLatLng = map.unproject(targetPoint, zoom);
 
-    map.flyTo(target, zoom);
+    map.flyTo(targetLatLng, zoom);
   }, [item, map]);
 
   return null;

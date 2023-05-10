@@ -25,18 +25,27 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
   const [itineraries, setItineraries] = useState<Itinerary[]>([]);
   const ctx = api.useContext();
 
-  const { data: trip, isLoading: isTripLoading } = api.trip.findTrip.useQuery({
-    id: tripId,
-  });
+  const { data: trip, isLoading: isTripLoading } = api.trip.findTrip.useQuery(
+    {
+      id: tripId,
+    },
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
 
   const { data: attractions, isLoading: isAttractionsLoading } =
-    api.attraction.getAllAttractions.useQuery({ countryCode: "CZ" });
+    api.attraction.getAllAttractions.useQuery(
+      { countryCode: "CZ" },
+      { refetchOnWindowFocus: false }
+    );
 
   const { isLoading: isItinerariesLoading } =
     api.itinerary.fetchItineraries.useQuery(
       { tripId: tripId },
       {
         enabled: !!attractions,
+        refetchOnWindowFocus: false,
         onSuccess(data) {
           setItineraries(data);
         },
@@ -180,7 +189,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
       <div>
         <div className="bg-white p-0">
           <div className="mx-auto grid grid-cols-12">
-            <main className="col-span-6 p-6">
+            <main className="col-span-5 p-6">
               {/* Page title & actions */}
               <div className="flex items-center justify-between border-b border-gray-200 py-4 px-8">
                 <div>
@@ -218,9 +227,9 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                 </button>
               </div>
             </main>
-            <aside className="col-span-6">
+            <aside className="col-span-7">
               <div className="sticky top-0">
-                <div className="flex h-screen flex-col items-center ">
+                <div className="flex h-screen flex-col items-center">
                   <div className="z-0 h-full w-full">
                     <DynamicMap
                       places={attractions || []}

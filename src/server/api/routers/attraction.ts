@@ -11,6 +11,8 @@ export type AttractionImage = {
 export type BasicAttractionInfo =
   RouterOutputs["attraction"]["getAllAttractions"][number];
 
+export type AttractionInfo = RouterOutputs["attraction"]["findAttraction"];
+
 export const attractionRouter = createTRPCRouter({
   addAttraction: publicProcedure
     .input(
@@ -41,6 +43,22 @@ export const attractionRouter = createTRPCRouter({
 
       return { success: true, vote: voteInDb };
     }),
+
+  deleteAttraction: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.prisma.attraction.delete({
+        where: {
+          id: input.id,
+        },
+      });
+      return result;
+    }),
+
   updateAttraction: publicProcedure
     .input(
       z.object({
@@ -82,7 +100,7 @@ export const attractionRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      return await ctx.prisma.attraction.findFirst({
+      return await ctx.prisma.attraction.findFirstOrThrow({
         where: {
           id: input.id,
         },
@@ -105,7 +123,7 @@ export const attractionRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const name = input.name.replaceAll(" ", "+");
-      const url = `https://www.google.com/search?q=${name}&tbm=isch`;
+      const url = `https://www.google.com/search?q=${name}+${input.city}&tbm=isch&tbs=isz:l`;
       const res = await fetch(url);
       const data = await res.text();
 
