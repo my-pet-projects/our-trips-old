@@ -1,7 +1,9 @@
 import { BasicAttractionInfo } from "@/server/api/routers/attraction";
-import { Itinerary } from "@/server/api/routers/itinerary";
+import { Directions, Itinerary } from "@/server/api/routers/itinerary";
+import { Feature } from "geojson";
+import { Layer, LeafletMouseEvent } from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { LayersControl, MapContainer, TileLayer } from "react-leaflet";
+import { GeoJSON, LayersControl, MapContainer, TileLayer } from "react-leaflet";
 import { AttractionMarker, AttractionMarkerData } from "./attraction-marker";
 import { CurrentCoordinates } from "./current-coordinates";
 import { LocationMarker } from "./current-location";
@@ -12,6 +14,7 @@ import MarkerClusterGroup, { clusterIcon } from "./marker-cluster-group";
 type MapProps = {
   places: BasicAttractionInfo[];
   itineraries: Itinerary[];
+  directions: Directions[];
   selectedPoi?: BasicAttractionInfo;
   onPoiClick: (item: BasicAttractionInfo) => void;
 };
@@ -38,6 +41,7 @@ const getAvailablePlaces = (
 export default function Map({
   places,
   itineraries,
+  directions,
   selectedPoi,
   onPoiClick,
 }: MapProps) {
@@ -111,6 +115,37 @@ export default function Map({
           <LocatePlace item={selectedPoi} />
         </>
       )}
+      {directions &&
+        directions.map((dir, idx) => (
+          <GeoJSON
+            key={idx}
+            data={dir}
+            onEachFeature={(feature: Feature, layer: Layer): void => {
+              layer.on({
+                mouseover: (e: LeafletMouseEvent): void => {
+                  const distance = (e.target.feature.properties.summary
+                    .distance / 1000,
+                  2).toFixed(2);
+                  const duration = (
+                    e.target.feature.properties.summary.duration / 60
+                  ).toFixed(2);
+                  layer.bindTooltip(
+                    `Distance: ${distance} km<br/> Duration: ${duration} min`,
+                    {
+                      direction: "center",
+                      permanent: true,
+                    }
+                  );
+                  layer.openTooltip();
+                },
+                mouseout: (): void => {
+                  layer.unbindTooltip();
+                  layer.closeTooltip();
+                },
+              });
+            }}
+          />
+        ))}
       {/* <LeafletMyPosition /> */}
 
       {/* <LocateControl position="topleft" /> */}

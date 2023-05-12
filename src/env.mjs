@@ -20,6 +20,7 @@ const server = z.object({
     process.env.VERCEL ? z.string().min(1) : z.string().url()
   ),
   CREDENTIALS_PROVIDER_URL: z.string().min(1),
+  OPENROUTE_SECRET: z.string().min(1),
 });
 
 /**
@@ -43,6 +44,7 @@ const processEnv = {
   NEXTAUTH_URL: process.env.NEXTAUTH_URL,
   CREDENTIALS_PROVIDER_URL: process.env.CREDENTIALS_PROVIDER_URL,
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+  OPENROUTE_SECRET: process.env.OPENROUTE_SECRET,
 };
 
 // Don't touch the part below

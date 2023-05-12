@@ -1,4 +1,6 @@
+import { env } from "@/env.mjs";
 import { RouterOutputs } from "@/utils/api";
+import { BBox, GeoJsonTypes } from "geojson";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
@@ -134,4 +136,116 @@ export const itineraryRouter = createTRPCRouter({
       });
       return result;
     }),
+
+  getPlaceDistance: publicProcedure
+    .input(
+      z.object({
+        placeOne: z.object({
+          id: z.string(),
+          latitude: z.number(),
+          longitude: z.number(),
+        }),
+        placeTwo: z.object({
+          id: z.string(),
+          latitude: z.number(),
+          longitude: z.number(),
+        }),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const host = "https://api.openrouteservice.org";
+      const profile = "foot-walking";
+      const url = `${host}/v2/directions/${profile}?api_key=${env.OPENROUTE_SECRET}&start=${input.placeOne.longitude},${input.placeOne.latitude}&end=${input.placeTwo.longitude},${input.placeTwo.latitude}`;
+      console.log(url);
+
+      const res = await fetch(url);
+      console.log(res);
+      const data = await res.json();
+
+      console.log(data);
+
+      const result = data as Directions;
+
+      result.features.map((feature) => {
+        const flippedCoordinates = feature.geometry.coordinates.map(
+          (coordinates) => [coordinates[1], coordinates[0]]
+        );
+        return {
+          ...feature,
+          geometry: { ...feature.geometry, coordinates: flippedCoordinates },
+        };
+      });
+      return {
+        ...result,
+        placeIdOne: input.placeOne.id,
+        placeIdTwo: input.placeTwo.id,
+      };
+    }),
 });
+
+export type Directions = {
+  placeIdOne: string;
+  placeIdTwo: string;
+  type: GeoJsonTypes;
+  features: Feature[];
+  bbox: BBox | undefined;
+  metadata: Metadata;
+};
+
+export type Feature = {
+  bbox: number[];
+  type: string;
+  properties: Properties;
+  geometry: Geometry;
+};
+
+export type Geometry = {
+  coordinates: Array<number[]>;
+  type: GeoJsonTypes;
+};
+
+export type Properties = {
+  segments: Segment[];
+  way_points: number[];
+  summary: Summary;
+};
+
+export type Segment = {
+  distance: number;
+  duration: number;
+  steps: Step[];
+};
+
+export type Step = {
+  distance: number;
+  duration: number;
+  type: number;
+  instruction: string;
+  name: string;
+  way_points: number[];
+};
+
+export type Summary = {
+  distance: number;
+  duration: number;
+};
+
+export type Metadata = {
+  attribution: string;
+  service: string;
+  timestamp: number;
+  query: Query;
+  engine: Engine;
+};
+
+export type Engine = {
+  version: string;
+  build_date: Date;
+  graph_date: Date;
+};
+
+export type Query = {
+  coordinates: Array<number[]>;
+  profile: string;
+  format: string;
+};

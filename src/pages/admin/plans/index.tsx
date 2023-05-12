@@ -12,7 +12,7 @@ function Plans() {
   const { data: result, isLoading } = api.attraction.getAllAttractions.useQuery(
     {
       cityId: city?.id,
-      countryCode: country?.cca2,
+      countryCodes: country ? [country.cca2] : [],
     }
   );
 
@@ -44,6 +44,7 @@ function Plans() {
             places={result}
             onPoiClick={onPoiClick}
             itineraries={[]}
+            directions={[]}
           />
         </div>
       )}

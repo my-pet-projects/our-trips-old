@@ -1,4 +1,4 @@
-import { LoadingPage } from "@/components/common/loading";
+import { LoadingPage, LoadingSpinner } from "@/components/common/loading";
 import { DropdownMenu } from "@/components/layout/drop-down-menu";
 import { ModalDialog } from "@/components/layout/modal-dialog";
 import { DynamicMap } from "@/components/leaflet/dynamic-map";
@@ -6,6 +6,7 @@ import { ItineraryPlaceIcon } from "@/components/leaflet/icon";
 import { PointOfInterestDetails } from "@/components/poi/poi-details";
 import { BasicAttractionInfo } from "@/server/api/routers/attraction";
 import {
+  Directions,
   Itinerary,
   ItineraryPlace,
   ItineraryPlaceAttraction,
@@ -19,10 +20,12 @@ import Head from "next/head";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import { GiPathDistance } from "react-icons/gi";
 
 const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
   const [selectedPoi, setSelectedPoi] = useState<BasicAttractionInfo>();
   const [itineraries, setItineraries] = useState<Itinerary[]>([]);
+  const [directions, setDirections] = useState<Directions[]>([]);
   const ctx = api.useContext();
 
   const { data: trip, isLoading: isTripLoading } = api.trip.findTrip.useQuery(
@@ -181,6 +184,15 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
     );
   };
 
+  const onDirectionsCalculated = (data: Directions) => {
+    const filtered = directions.filter(
+      (dir) =>
+        dir.placeIdOne !== data.placeIdOne && dir.placeIdTwo !== data.placeIdTwo
+    );
+    filtered.push(data);
+    setDirections(filtered);
+  };
+
   return (
     <>
       <Head>
@@ -211,6 +223,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                     onPoiClick={onPoiClick}
                     onDeleteItinerary={onDeleteItinerary}
                     onRemoveFromItinerary={onRemoveFromItinerary}
+                    onDirectionsCalculated={onDirectionsCalculated}
                   />
                 ))}
 
@@ -236,6 +249,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                       itineraries={itineraries}
                       selectedPoi={selectedPoi}
                       onPoiClick={onPoiClick}
+                      directions={directions}
                     />
                   </div>
                   {selectedPoi && (
@@ -338,6 +352,7 @@ type ItineraryElementProps = {
   onPoiClick(item: BasicAttractionInfo): void;
   onDeleteItinerary(itinerary: Itinerary): void;
   onRemoveFromItinerary(place: Attraction, itinerary: Itinerary): void;
+  onDirectionsCalculated(data: Directions): void;
 };
 
 const ItineraryElement = ({
@@ -346,6 +361,7 @@ const ItineraryElement = ({
   onPoiClick,
   onRemoveFromItinerary,
   onDeleteItinerary,
+  onDirectionsCalculated,
 }: ItineraryElementProps) => {
   const [showEditModel, setShowEditModal] = useState(false);
   const ctx = api.useContext();
@@ -386,6 +402,10 @@ const ItineraryElement = ({
     });
   };
 
+  const sortedPlaces = itinerary.places.sort(
+    (placeOne, placeTwo) => placeOne.order - placeTwo.order
+  );
+
   return (
     <div>
       <div className="flex w-full items-center">
@@ -416,15 +436,24 @@ const ItineraryElement = ({
       </div>
 
       <div className="space-y-5 pt-5">
-        {itinerary.places.map((place) => (
-          <ItineraryPlaceElement
-            key={place.id}
-            place={place}
-            selected={selectedPoi?.id === place.attractionId}
-            itinerary={itinerary}
-            onClick={onPoiClick}
-            onDelete={onRemoveFromItinerary}
-          />
+        {sortedPlaces.map((place, index) => (
+          <>
+            <ItineraryPlaceElement
+              key={place.id}
+              place={place}
+              selected={selectedPoi?.id === place.attractionId}
+              itinerary={itinerary}
+              onClick={onPoiClick}
+              onDelete={onRemoveFromItinerary}
+            />
+            {index !== itinerary.places.length - 1 && (
+              <PlacesDistance
+                start={place}
+                end={sortedPlaces[index + 1]}
+                onDirectionsCalculated={onDirectionsCalculated}
+              />
+            )}
+          </>
         ))}
       </div>
 
@@ -450,6 +479,87 @@ const ItineraryElement = ({
           </div>
         </div>
       </ModalDialog>
+    </div>
+  );
+};
+
+type PlacesDistanceProps = {
+  start: ItineraryPlace;
+  end?: ItineraryPlace;
+  onDirectionsCalculated: (data: Directions) => void;
+};
+
+const PlacesDistance = ({
+  start,
+  end,
+  onDirectionsCalculated,
+}: PlacesDistanceProps) => {
+  if (!end) {
+    return null;
+  }
+
+  const {
+    data: trip,
+    isLoading,
+    refetch: recalculate,
+    isRefetching,
+  } = api.itinerary.getPlaceDistance.useQuery(
+    {
+      placeOne: {
+        id: start.id,
+        latitude: start.attraction.latitude,
+        longitude: start.attraction.longitude,
+      },
+      placeTwo: {
+        id: start.id,
+        latitude: end.attraction.latitude,
+        longitude: end.attraction.longitude,
+      },
+    },
+    {
+      refetchOnWindowFocus: false,
+      onSuccess: (data) => {
+        onDirectionsCalculated(data);
+      },
+    }
+  );
+
+  const reCalculateDistances = () => {
+    recalculate();
+  };
+
+  const isBusy = isLoading || isRefetching;
+
+  return (
+    <div className="flex h-5 flex-row justify-center gap-4">
+      {isBusy && <LoadingSpinner />}
+      {!isBusy && (
+        <>
+          {trip?.features[0] && (
+            <span className="flex flex-row gap-2">
+              <span className="text-sm">
+                {(trip.features[0].properties.summary.distance / 1000).toFixed(
+                  2
+                )}{" "}
+                km
+              </span>
+              <span className="text-sm">
+                {(trip.features[0]?.properties.summary.duration / 60).toFixed(
+                  2
+                )}{" "}
+                min
+              </span>
+            </span>
+          )}
+          <button
+            className="group flex items-center"
+            type="button"
+            onClick={reCalculateDistances}
+          >
+            <GiPathDistance className="h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+          </button>
+        </>
+      )}
     </div>
   );
 };
