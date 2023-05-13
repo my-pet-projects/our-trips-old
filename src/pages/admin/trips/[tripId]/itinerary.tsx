@@ -12,6 +12,9 @@ import {
   ItineraryPlaceAttraction,
 } from "@/server/api/routers/itinerary";
 import { api } from "@/utils/api";
+import { Active, DndContext } from "@dnd-kit/core";
+import { arrayMove, SortableContext, useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import { Attraction } from "@prisma/client";
 import classNames from "classnames";
@@ -144,21 +147,24 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
   ): void => {
     removePlace(
       {
-        placeId: place.id,
+        attractionId: place.id,
         itineraryId: itinerary.id,
       },
       {
         onSuccess() {
+          // TODO: this is not working
           const modifyItineraries = itineraries.map((itin) => {
             if (itin.id === itinerary.id) {
               const places = itin.places.filter(
                 (p) => p.attractionId !== place.id
               );
+              console.log(place, itin.places, places);
               return { ...itin, places: places };
             } else {
               return itin;
             }
           });
+          console.log(modifyItineraries);
           setItineraries(modifyItineraries);
         },
       }
@@ -185,12 +191,40 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
   };
 
   const onDirectionsCalculated = (data: Directions) => {
-    const filtered = directions.filter(
-      (dir) =>
-        dir.placeIdOne !== data.placeIdOne && dir.placeIdTwo !== data.placeIdTwo
-    );
-    filtered.push(data);
-    setDirections(filtered);
+    // if (exists) {
+    //   console.log("exists");
+    //   return;
+    // }
+
+    setDirections((directions) => {
+      console.log("data", data.placeIdOne, data.placeIdTwo);
+      const exists = directions.find(
+        (dir) =>
+          dir.placeIdOne === data.placeIdOne ||
+          dir.placeIdOne === data.placeIdTwo
+      );
+      if (!exists) {
+        console.log("not exists, adding");
+        return [...directions, data];
+      }
+      console.log("exists");
+      console.log("-----");
+
+      const newDir = directions.map((dir) => {
+        console.log("cur", dir.placeIdOne, dir.placeIdTwo);
+        if (
+          dir.placeIdOne === data.placeIdOne &&
+          dir.placeIdTwo !== data.placeIdTwo
+        ) {
+          console.log("replace");
+          return data;
+        }
+        console.log("use exissting");
+
+        return dir;
+      });
+      return newDir;
+    });
   };
 
   return (
@@ -311,8 +345,24 @@ const ItineraryPlaceElement = ({
   onClick,
   onDelete,
 }: ItineraryPlaceProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    setActivatorNodeRef,
+  } = useSortable({ id: place.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   return (
     <div
+      ref={setNodeRef}
+      style={style}
       onClick={() => onClick(place.attraction)}
       className={classNames(
         "group flex flex-row items-center gap-5 rounded-lg border border-gray-200 bg-white p-4 shadow transition duration-300 ease-in-out hover:cursor-pointer hover:shadow-lg",
@@ -320,6 +370,9 @@ const ItineraryPlaceElement = ({
       )}
     >
       <div
+        {...attributes}
+        {...listeners}
+        ref={setActivatorNodeRef}
         className={classNames("flex items-center", selected ? "scale-150" : "")}
       >
         <ItineraryPlaceIcon color={itinerary.color.name} digit={place.order} />
@@ -330,6 +383,10 @@ const ItineraryPlaceElement = ({
           <br />
           <small className="text-neutral-500">
             {place.attraction.nameLocal}
+            <br />
+            {place.order}
+            <br />
+            {place.id}
           </small>
         </h5>
       </div>
@@ -366,6 +423,8 @@ const ItineraryElement = ({
   const [showEditModel, setShowEditModal] = useState(false);
   const ctx = api.useContext();
 
+  const [active, setActive] = useState<Active | null>(null);
+
   const [nameInput, setNameInput] = useState(itinerary.name);
 
   const { mutate: updateItinerary, isLoading: isUpdating } =
@@ -390,6 +449,9 @@ const ItineraryElement = ({
       },
     });
 
+  const { mutate: updatePlace, isLoading: isUpdatingPlace } =
+    api.itinerary.updatePlace.useMutation();
+
   const handleClose = () => setShowEditModal(false);
   const handleShow = () => {
     setNameInput(itinerary.name);
@@ -402,9 +464,18 @@ const ItineraryElement = ({
     });
   };
 
-  const sortedPlaces = itinerary.places.sort(
-    (placeOne, placeTwo) => placeOne.order - placeTwo.order
+  const [sortedPlaces, setSortedPlaces] = useState(
+    itinerary.places.sort(
+      (placeOne, placeTwo) => placeOne.order - placeTwo.order
+    )
   );
+
+  const onChange = (items: ItineraryPlace[]) => {
+    const q = items.map((item, idx) => {
+      return { ...item, order: idx + 1 };
+    });
+    setSortedPlaces(q);
+  };
 
   return (
     <div>
@@ -436,25 +507,54 @@ const ItineraryElement = ({
       </div>
 
       <div className="space-y-5 pt-5">
-        {sortedPlaces.map((place, index) => (
-          <>
-            <ItineraryPlaceElement
-              key={place.id}
-              place={place}
-              selected={selectedPoi?.id === place.attractionId}
-              itinerary={itinerary}
-              onClick={onPoiClick}
-              onDelete={onRemoveFromItinerary}
-            />
-            {index !== itinerary.places.length - 1 && (
-              <PlacesDistance
-                start={place}
-                end={sortedPlaces[index + 1]}
-                onDirectionsCalculated={onDirectionsCalculated}
-              />
-            )}
-          </>
-        ))}
+        <DndContext
+          onDragStart={({ active }) => {
+            setActive(active);
+          }}
+          onDragEnd={({ active, over }) => {
+            console.log("dragend");
+            if (over && active.id !== over?.id) {
+              const activeIndex = sortedPlaces.findIndex(
+                ({ id }) => id === active.id
+              );
+              const overIndex = sortedPlaces.findIndex(
+                ({ id }) => id === over.id
+              );
+              updatePlace({
+                id: active.id.toString(),
+                order: overIndex + 1,
+              });
+              updatePlace({
+                id: over.id.toString(),
+                order: activeIndex + 1,
+              });
+              onChange(arrayMove(sortedPlaces, activeIndex, overIndex));
+            }
+            setActive(null);
+          }}
+        >
+          <SortableContext items={sortedPlaces.map((place) => place.id)}>
+            {sortedPlaces.map((place, index) => (
+              <>
+                <ItineraryPlaceElement
+                  key={place.id}
+                  place={place}
+                  selected={selectedPoi?.id === place.attractionId}
+                  itinerary={itinerary}
+                  onClick={onPoiClick}
+                  onDelete={onRemoveFromItinerary}
+                />
+                {index !== itinerary.places.length - 1 && (
+                  <PlacesDistance
+                    start={place}
+                    end={sortedPlaces[index + 1]}
+                    onDirectionsCalculated={onDirectionsCalculated}
+                  />
+                )}
+              </>
+            ))}
+          </SortableContext>
+        </DndContext>
       </div>
 
       <ModalDialog
@@ -511,7 +611,7 @@ const PlacesDistance = ({
         longitude: start.attraction.longitude,
       },
       placeTwo: {
-        id: start.id,
+        id: end.id,
         latitude: end.attraction.latitude,
         longitude: end.attraction.longitude,
       },

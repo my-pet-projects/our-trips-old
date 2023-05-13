@@ -7,7 +7,6 @@ import { GeoJSON, LayersControl, MapContainer, TileLayer } from "react-leaflet";
 import { AttractionMarker, AttractionMarkerData } from "./attraction-marker";
 import { CurrentCoordinates } from "./current-coordinates";
 import { LocationMarker } from "./current-location";
-import { FitMap } from "./fit-map";
 import { LocatePlace } from "./locate-place";
 import MarkerClusterGroup, { clusterIcon } from "./marker-cluster-group";
 
@@ -54,10 +53,12 @@ export default function Map({
     }
   };
 
+  console.log("map directions", directions);
+
   return (
     <MapContainer
-      center={[0, 0]}
-      zoom={2}
+      center={[28.6142, 77.242]}
+      zoom={14}
       className="h-screen"
       attributionControl={false}
     >
@@ -102,7 +103,7 @@ export default function Map({
         ))}
       </LayersControl>
 
-      <FitMap items={places} />
+      {/* <FitMap items={places} /> */}
       <CurrentCoordinates />
       <LocationMarker />
       {selectedPoi && (
@@ -118,14 +119,14 @@ export default function Map({
       {directions &&
         directions.map((dir, idx) => (
           <GeoJSON
-            key={idx}
+            key={`${dir.placeIdOne}|${dir.placeIdTwo}`}
             data={dir}
             onEachFeature={(feature: Feature, layer: Layer): void => {
               layer.on({
                 mouseover: (e: LeafletMouseEvent): void => {
-                  const distance = (e.target.feature.properties.summary
-                    .distance / 1000,
-                  2).toFixed(2);
+                  const distance = (
+                    e.target.feature.properties.summary.distance / 1000
+                  ).toFixed(2);
                   const duration = (
                     e.target.feature.properties.summary.duration / 60
                   ).toFixed(2);

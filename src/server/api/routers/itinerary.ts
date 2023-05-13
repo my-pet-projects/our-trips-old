@@ -124,14 +124,33 @@ export const itineraryRouter = createTRPCRouter({
     .input(
       z.object({
         itineraryId: z.string(),
-        placeId: z.string(),
+        attractionId: z.string(), // TODO: change to placeId
       })
     )
     .mutation(async ({ ctx, input }) => {
       const result = await ctx.prisma.itineraryPlace.deleteMany({
         where: {
           itineraryId: input.itineraryId,
-          attractionId: input.placeId,
+          attractionId: input.attractionId,
+        },
+      });
+      return result;
+    }),
+
+  updatePlace: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        order: z.number(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.prisma.itineraryPlace.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          order: input.order,
         },
       });
       return result;
