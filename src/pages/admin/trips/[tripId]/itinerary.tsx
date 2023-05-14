@@ -3,7 +3,11 @@ import { ItineraryPlan } from "@/components/itinerary/itinerary-plan";
 import { DynamicMap } from "@/components/leaflet/dynamic-map";
 import { PointOfInterestDetails } from "@/components/poi/poi-details";
 import { BasicAttractionInfo } from "@/server/api/routers/attraction";
-import { Directions, Itinerary } from "@/server/api/routers/itinerary";
+import {
+  Directions,
+  Itinerary,
+  ItineraryPlace,
+} from "@/server/api/routers/itinerary";
 import { api } from "@/utils/api";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import { Attraction } from "@prisma/client";
@@ -139,9 +143,11 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
       },
       {
         onSuccess() {
-          // TODO: this is not working
+          let placesToRemove = [] as ItineraryPlace[];
           const modifyItineraries = itineraries.map((itin) => {
             if (itin.id === itinerary.id) {
+              placesToRemove =
+                itin.places.filter((p) => p.attractionId === place.id) || [];
               const places = itin.places.filter(
                 (p) => p.attractionId !== place.id
               );
@@ -153,6 +159,15 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
           });
           console.log(modifyItineraries);
           setItineraries(modifyItineraries);
+          console.log("placesToRemove", placesToRemove);
+
+          placesToRemove.forEach((p) => {
+            const newDir = directions.filter(
+              (dir) => dir.placeIdOne !== p.id && dir.placeIdTwo !== p.id
+            );
+            console.log(newDir);
+            setDirections(() => newDir);
+          });
         },
       }
     );

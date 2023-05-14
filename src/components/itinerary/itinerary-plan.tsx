@@ -10,7 +10,7 @@ import { api } from "@/utils/api";
 import { Active, DndContext } from "@dnd-kit/core";
 import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import { Attraction } from "@prisma/client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { Place } from "./place";
@@ -77,11 +77,19 @@ export const ItineraryPlan = ({
     });
   };
 
-  const [sortedPlaces, setSortedPlaces] = useState(
-    itinerary.places.sort(
-      (placeOne, placeTwo) => placeOne.order - placeTwo.order
-    )
-  );
+  console.log("itinerary.places", itinerary.places);
+
+  const [sortedPlaces, setSortedPlaces] = useState<ItineraryPlace[]>([]);
+
+  useEffect(() => {
+    setSortedPlaces(
+      itinerary.places.sort(
+        (placeOne, placeTwo) => placeOne.order - placeTwo.order
+      )
+    );
+  }, [itinerary]);
+
+  console.log("sortedPlaces", sortedPlaces);
 
   const onChange = (items: ItineraryPlace[]) => {
     const q = items.map((item, idx) => {
