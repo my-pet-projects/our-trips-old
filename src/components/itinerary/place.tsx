@@ -8,6 +8,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import classNames from "classnames";
 import { FaTrash } from "react-icons/fa";
+import { RiArrowUpDownFill } from "react-icons/ri";
 
 type PlaceProps = {
   place: ItineraryPlace;
@@ -34,6 +35,7 @@ export const Place = ({
     transform,
     transition,
     setActivatorNodeRef,
+    active,
   } = useSortable({ id: place.id });
 
   const style = {
@@ -42,37 +44,53 @@ export const Place = ({
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      onClick={() => onClick(place.attraction)}
-      className={classNames(
-        "group flex flex-row items-center gap-5 rounded-lg border border-gray-200 bg-white p-4 shadow transition duration-300 ease-in-out hover:cursor-pointer hover:shadow-lg",
-        selected ? "shadow-xl" : ""
-      )}
-    >
+    <div className="group flex flex-row items-center">
       <div
         {...attributes}
         {...listeners}
         ref={setActivatorNodeRef}
-        className={classNames("flex items-center", selected ? "scale-150" : "")}
+        className="invisible group-hover:visible"
       >
-        <ItineraryPlaceIcon color={itinerary.color.name} digit={place.order} />
+        <button
+          type="button"
+          className="bg-white text-gray-400 hover:text-gray-500"
+          onClick={() => onDelete(place.attraction, itinerary)}
+        >
+          <RiArrowUpDownFill />
+        </button>
       </div>
-      <div>
-        <h5 className="text-xl font-medium leading-tight text-neutral-800">
-          {place.attraction?.name}
-          <br />
-          <small className="text-neutral-500">
-            {place.attraction.nameLocal}
+      <div
+        ref={setNodeRef}
+        style={style}
+        onClick={() => onClick(place.attraction)}
+        className={classNames(
+          "ml-5 flex w-full flex-row items-center gap-5 rounded-lg border border-gray-200 bg-white p-4 shadow  hover:cursor-pointer hover:shadow-lg",
+          selected ? "shadow-xl" : "",
+          active ? "" : "transition duration-300 ease-in-out"
+        )}
+      >
+        <div
+          className={classNames(
+            "flex items-center",
+            selected ? "scale-150" : ""
+          )}
+        >
+          <ItineraryPlaceIcon
+            color={itinerary.color.name}
+            digit={place.order}
+          />
+        </div>
+        <div>
+          <h5 className="text-xl font-medium leading-tight text-neutral-800">
+            {place.attraction?.name}
             <br />
-            {place.order}
-            <br />
-            {place.id}
-          </small>
-        </h5>
+            <small className="text-neutral-500">
+              {place.attraction.nameLocal}
+            </small>
+          </h5>
+        </div>
       </div>
-      <div className="invisible ml-auto group-hover:visible">
+      <div className="invisible ml-5 group-hover:visible">
         <button
           type="button"
           className="bg-white text-gray-400 hover:text-gray-500"

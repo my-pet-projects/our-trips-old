@@ -27,11 +27,13 @@ export const PlaceDistance = ({
     {
       placeOne: {
         id: start.id,
+        attractionId: start.attractionId,
         latitude: start.attraction.latitude,
         longitude: start.attraction.longitude,
       },
       placeTwo: {
         id: end.id,
+        attractionId: end.attractionId,
         latitude: end.attraction.latitude,
         longitude: end.attraction.longitude,
       },
@@ -57,13 +59,13 @@ export const PlaceDistance = ({
         <>
           {trip?.features[0] && (
             <span className="flex flex-row gap-2">
-              <span className="text-sm">
+              <span className="text-sm text-slate-400">
                 {(trip.features[0].properties.summary.distance / 1000).toFixed(
                   2
                 )}{" "}
                 km
               </span>
-              <span className="text-sm">
+              <span className="text-sm text-slate-400">
                 {(trip.features[0]?.properties.summary.duration / 60).toFixed(
                   2
                 )}{" "}
@@ -76,7 +78,7 @@ export const PlaceDistance = ({
             type="button"
             onClick={reCalculateDistances}
           >
-            <GiPathDistance className="h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+            <GiPathDistance className="h-5 w-5 text-slate-400 group-hover:text-gray-500" />
           </button>
         </>
       )}

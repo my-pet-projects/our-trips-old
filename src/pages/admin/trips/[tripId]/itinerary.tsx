@@ -229,6 +229,19 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
     });
   };
 
+  const onChangeInItinerary = (
+    itinerary: Itinerary,
+    places: ItineraryPlace[]
+  ) => {
+    const modifyItineraries = itineraries.map((itin) => {
+      if (itin.id === itinerary.id) {
+        return { ...itin, places: places };
+      }
+      return itin;
+    });
+    setItineraries(modifyItineraries);
+  };
+
   return (
     <>
       <Head>
@@ -259,6 +272,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                     onPoiClick={onPoiClick}
                     onDeleteItinerary={onDeleteItinerary}
                     onRemoveFromItinerary={onRemoveFromItinerary}
+                    onChangeInItinerary={onChangeInItinerary}
                     onDirectionsCalculated={onDirectionsCalculated}
                   />
                 ))}

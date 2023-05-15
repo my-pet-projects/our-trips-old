@@ -161,11 +161,13 @@ export const itineraryRouter = createTRPCRouter({
       z.object({
         placeOne: z.object({
           id: z.string(),
+          attractionId: z.string(),
           latitude: z.number(),
           longitude: z.number(),
         }),
         placeTwo: z.object({
           id: z.string(),
+          attractionId: z.string(),
           latitude: z.number(),
           longitude: z.number(),
         }),
@@ -198,13 +200,17 @@ export const itineraryRouter = createTRPCRouter({
         ...result,
         placeIdOne: input.placeOne.id,
         placeIdTwo: input.placeTwo.id,
+        attractionIdOne: input.placeOne.attractionId,
+        attractionIdTwo: input.placeTwo.attractionId,
       };
     }),
 });
 
 export type Directions = {
   placeIdOne: string;
+  attractionIdOne: string;
   placeIdTwo: string;
+  attractionIdTwo: string;
   type: GeoJsonTypes;
   features: Feature[];
   bbox: BBox | undefined;

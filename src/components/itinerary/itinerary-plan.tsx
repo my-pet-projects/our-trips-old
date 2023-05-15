@@ -22,6 +22,7 @@ type ItineraryPlanProps = {
   onPoiClick(item: BasicAttractionInfo): void;
   onDeleteItinerary(itinerary: Itinerary): void;
   onRemoveFromItinerary(place: Attraction, itinerary: Itinerary): void;
+  onChangeInItinerary(itinerary: Itinerary, places: ItineraryPlace[]): void;
   onDirectionsCalculated(data: Directions): void;
 };
 
@@ -30,6 +31,7 @@ export const ItineraryPlan = ({
   selectedPoi,
   onPoiClick,
   onRemoveFromItinerary,
+  onChangeInItinerary,
   onDeleteItinerary,
   onDirectionsCalculated,
 }: ItineraryPlanProps) => {
@@ -96,6 +98,7 @@ export const ItineraryPlan = ({
       return { ...item, order: idx + 1 };
     });
     setSortedPlaces(q);
+    onChangeInItinerary(itinerary, q);
   };
 
   return (
@@ -128,54 +131,55 @@ export const ItineraryPlan = ({
       </div>
 
       <div className="space-y-5 pt-5">
-        <DndContext
-          onDragStart={({ active }) => {
-            setActive(active);
-          }}
-          onDragEnd={({ active, over }) => {
-            console.log("dragend");
-            if (over && active.id !== over?.id) {
-              const activeIndex = sortedPlaces.findIndex(
-                ({ id }) => id === active.id
-              );
-              const overIndex = sortedPlaces.findIndex(
-                ({ id }) => id === over.id
-              );
-              updatePlace({
-                id: active.id.toString(),
-                order: overIndex + 1,
-              });
-              updatePlace({
-                id: over.id.toString(),
-                order: activeIndex + 1,
-              });
-              onChange(arrayMove(sortedPlaces, activeIndex, overIndex));
-            }
-            setActive(null);
-          }}
-        >
-          <SortableContext items={sortedPlaces.map((place) => place.id)}>
-            {sortedPlaces.map((place, index) => (
-              <>
-                <Place
-                  key={place.id}
-                  place={place}
-                  selected={selectedPoi?.id === place.attractionId}
-                  itinerary={itinerary}
-                  onClick={onPoiClick}
-                  onDelete={onRemoveFromItinerary}
-                />
-                {index !== itinerary.places.length - 1 && (
-                  <PlaceDistance
-                    start={place}
-                    end={sortedPlaces[index + 1]}
-                    onDirectionsCalculated={onDirectionsCalculated}
+        {sortedPlaces && (
+          <DndContext
+            onDragStart={({ active }) => {
+              setActive(active);
+            }}
+            onDragEnd={({ active, over }) => {
+              console.log("dragend");
+              if (over && active.id !== over?.id) {
+                const activeIndex = sortedPlaces.findIndex(
+                  ({ id }) => id === active.id
+                );
+                const overIndex = sortedPlaces.findIndex(
+                  ({ id }) => id === over.id
+                );
+                updatePlace({
+                  id: active.id.toString(),
+                  order: overIndex + 1,
+                });
+                updatePlace({
+                  id: over.id.toString(),
+                  order: activeIndex + 1,
+                });
+                onChange(arrayMove(sortedPlaces, activeIndex, overIndex));
+              }
+              setActive(null);
+            }}
+          >
+            <SortableContext items={sortedPlaces.map((place) => place.id)}>
+              {sortedPlaces.map((place, index) => (
+                <div key={place.id} className="space-y-5">
+                  <Place
+                    place={place}
+                    selected={selectedPoi?.id === place.attractionId}
+                    itinerary={itinerary}
+                    onClick={onPoiClick}
+                    onDelete={onRemoveFromItinerary}
                   />
-                )}
-              </>
-            ))}
-          </SortableContext>
-        </DndContext>
+                  {index !== itinerary.places.length - 1 && (
+                    <PlaceDistance
+                      start={place}
+                      end={sortedPlaces[index + 1]}
+                      onDirectionsCalculated={onDirectionsCalculated}
+                    />
+                  )}
+                </div>
+              ))}
+            </SortableContext>
+          </DndContext>
+        )}
       </div>
 
       <ModalDialog

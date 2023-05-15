@@ -121,6 +121,20 @@ export default function Map({
           <GeoJSON
             key={`${dir.placeIdOne}|${dir.placeIdTwo}`}
             data={dir}
+            style={(feature) => {
+              if (dir.attractionIdOne === selectedPoi?.id) {
+                return {
+                  color: "#1660c7",
+                  weight: 5,
+                  opacity: 1,
+                };
+              }
+              return {
+                color: "#3388ff",
+                weight: 3,
+                opacity: 0.7,
+              };
+            }}
             onEachFeature={(feature: Feature, layer: Layer): void => {
               layer.on({
                 mouseover: (e: LeafletMouseEvent): void => {
