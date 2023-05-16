@@ -278,6 +278,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
           existingDir.placeIdTwo
         );
         if (
+          data.itineraryId === existingDir.itineraryId &&
           data.placeOneOrder === existingDir.placeOneOrder &&
           data.placeTwoOrder === existingDir.placeTwoOrder
         ) {

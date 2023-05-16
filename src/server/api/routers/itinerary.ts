@@ -250,6 +250,7 @@ export type Directions = {
   placeIdTwo: string;
   placeTwoOrder: number;
   attractionIdTwo: string;
+  itineraryId: string;
   type: GeoJsonTypes;
   features: Feature[];
   bbox: BBox | undefined;

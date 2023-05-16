@@ -172,7 +172,12 @@ export const ItineraryPlan = ({
                     <PlaceDistance
                       start={place}
                       end={sortedPlaces[index + 1]}
-                      onDirectionsCalculated={onDirectionsCalculated}
+                      onDirectionsCalculated={(data) =>
+                        onDirectionsCalculated({
+                          ...data,
+                          itineraryId: itinerary.id,
+                        })
+                      }
                     />
                   )}
                 </div>
