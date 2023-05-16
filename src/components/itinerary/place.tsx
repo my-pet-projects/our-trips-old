@@ -82,7 +82,7 @@ export const Place = ({
         </div>
         <div>
           <h5 className="text-xl font-medium leading-tight text-neutral-800">
-            {place.attraction?.name} ({place.id})
+            {place.attraction?.name}
             <br />
             <small className="text-neutral-500">
               {place.attraction.nameLocal}

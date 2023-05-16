@@ -1,4 +1,5 @@
 import { env } from "@/env.mjs";
+import { Coordinates } from "@/types/coordinates";
 import { RouterOutputs } from "@/utils/api";
 import { BBox, GeoJsonTypes } from "geojson";
 import { z } from "zod";
@@ -176,20 +177,42 @@ export const itineraryRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const host = "https://api.openrouteservice.org";
-      const profile = "foot-walking";
-      const url = `${host}/v2/directions/${profile}?api_key=${env.OPENROUTE_SECRET}&start=${input.placeOne.longitude},${input.placeOne.latitude}&end=${input.placeTwo.longitude},${input.placeTwo.latitude}`;
-      console.log(url);
+      let directions = {} as Directions;
+      const dbDirections = await ctx.prisma.direction.findFirst({
+        where: {
+          startPlaceId: input.placeOne.id,
+          endPlaceId: input.placeTwo.id,
+        },
+      });
 
-      const res = await fetch(url);
-      console.log(res);
-      const data = await res.json();
+      if (dbDirections) {
+        directions = JSON.parse(
+          dbDirections.directionsData as string
+        ) as Directions;
+      }
 
-      console.log(data);
+      if (!dbDirections) {
+        console.info("Directions not found in DB, making HTTP call");
+        const start = {
+          latitude: input.placeOne.latitude,
+          longitude: input.placeOne.longitude,
+        };
+        const end = {
+          latitude: input.placeTwo.latitude,
+          longitude: input.placeTwo.longitude,
+        };
+        directions = await fetchDirections(start, end);
 
-      const result = data as Directions;
+        await ctx.prisma.direction.create({
+          data: {
+            startPlaceId: input.placeOne.id,
+            endPlaceId: input.placeTwo.id,
+            directionsData: JSON.stringify(directions),
+          },
+        });
+      }
 
-      result.features.map((feature) => {
+      directions.features.map((feature) => {
         const flippedCoordinates = feature.geometry.coordinates.map(
           (coordinates) => [coordinates[1], coordinates[0]]
         );
@@ -199,7 +222,7 @@ export const itineraryRouter = createTRPCRouter({
         };
       });
       return {
-        ...result,
+        ...directions,
         placeIdOne: input.placeOne.id,
         placeIdTwo: input.placeTwo.id,
         placeOneOrder: input.placeOne.order,
@@ -209,6 +232,16 @@ export const itineraryRouter = createTRPCRouter({
       };
     }),
 });
+
+const fetchDirections = async (start: Coordinates, end: Coordinates) => {
+  const host = "https://api.openrouteservice.org";
+  const profile = "foot-walking";
+  const url = `${host}/v2/directions/${profile}?api_key=${env.OPENROUTE_SECRET}&start=${start.longitude},${start.latitude}&end=${end.longitude},${end.latitude}`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+  return data as Directions;
+};
 
 export type Directions = {
   placeIdOne: string;

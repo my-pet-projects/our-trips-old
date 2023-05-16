@@ -114,3 +114,13 @@ model Color {
     name      String
     Itinerary Itinerary[]
 }
+
+model Direction {
+    startPlaceId   String
+    endPlaceId     String
+    directionsData Json
+
+    @@unique([startPlaceId, endPlaceId])
+    @@index([startPlaceId])
+    @@index([endPlaceId])
+}

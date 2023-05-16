@@ -160,12 +160,13 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
           console.log(modifyItineraries);
           setItineraries(modifyItineraries);
           console.log("placesToRemove", placesToRemove);
+          console.log("placesToRemove directions", directions);
 
           placesToRemove.forEach((p) => {
             const newDir = directions.filter(
               (dir) => dir.placeIdOne !== p.id && dir.placeIdTwo !== p.id
             );
-            console.log(newDir);
+            console.log("filtered directions", newDir);
             setDirections(() => newDir);
           });
         },
