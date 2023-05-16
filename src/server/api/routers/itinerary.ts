@@ -162,12 +162,14 @@ export const itineraryRouter = createTRPCRouter({
         placeOne: z.object({
           id: z.string(),
           attractionId: z.string(),
+          order: z.number(),
           latitude: z.number(),
           longitude: z.number(),
         }),
         placeTwo: z.object({
           id: z.string(),
           attractionId: z.string(),
+          order: z.number(),
           latitude: z.number(),
           longitude: z.number(),
         }),
@@ -200,6 +202,8 @@ export const itineraryRouter = createTRPCRouter({
         ...result,
         placeIdOne: input.placeOne.id,
         placeIdTwo: input.placeTwo.id,
+        placeOneOrder: input.placeOne.order,
+        placeTwoOrder: input.placeTwo.order,
         attractionIdOne: input.placeOne.attractionId,
         attractionIdTwo: input.placeTwo.attractionId,
       };
@@ -209,7 +213,9 @@ export const itineraryRouter = createTRPCRouter({
 export type Directions = {
   placeIdOne: string;
   attractionIdOne: string;
+  placeOneOrder: number;
   placeIdTwo: string;
+  placeTwoOrder: number;
   attractionIdTwo: string;
   type: GeoJsonTypes;
   features: Feature[];

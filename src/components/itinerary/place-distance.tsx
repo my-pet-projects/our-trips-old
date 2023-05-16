@@ -27,12 +27,14 @@ export const PlaceDistance = ({
     {
       placeOne: {
         id: start.id,
+        order: start.order,
         attractionId: start.attractionId,
         latitude: start.attraction.latitude,
         longitude: start.attraction.longitude,
       },
       placeTwo: {
         id: end.id,
+        order: end.order,
         attractionId: end.attractionId,
         latitude: end.attraction.latitude,
         longitude: end.attraction.longitude,

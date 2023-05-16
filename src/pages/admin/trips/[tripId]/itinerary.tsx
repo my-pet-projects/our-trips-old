@@ -200,8 +200,24 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
 
     setDirections((directions) => {
       console.log(
-        "dir data " + data.placeIdOne + "->" + data.placeIdTwo,
-        directions.map((d) => d.placeIdOne + "->" + d.placeIdTwo)
+        ">>>>>>>>>>> dir data " +
+          data.placeIdOne +
+          " " +
+          data.placeOneOrder +
+          "   ->    " +
+          data.placeIdTwo +
+          " " +
+          data.placeTwoOrder,
+        directions.map(
+          (d) =>
+            d.placeIdOne +
+            " " +
+            d.placeOneOrder +
+            " -> " +
+            d.placeIdTwo +
+            " " +
+            d.placeTwoOrder
+        )
       );
 
       // const newDir = directions.map((dir) => {
@@ -250,23 +266,24 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
 
       // console.log("dir final", newDirs);
 
+      // sm4 -> i7 -> 38om -> ie5
+
       let newDirs = [...directions];
 
-      console.log(
-        "current dirs",
-        newDirs.map((d) => d.placeIdOne + "->" + d.placeIdTwo)
-      );
-
-      newDirs = newDirs.filter((existingDir) => {
+      newDirs = newDirs.map((existingDir) => {
+        console.log(
+          "1. existing dir",
+          existingDir.placeIdOne,
+          existingDir.placeIdTwo
+        );
         if (
-          (data.placeIdOne === existingDir.placeIdOne &&
-            data.placeIdTwo !== existingDir.placeIdTwo) ||
-          (data.placeIdTwo === existingDir.placeIdTwo &&
-            data.placeIdOne !== existingDir.placeIdOne)
+          data.placeOneOrder === existingDir.placeOneOrder &&
+          data.placeTwoOrder === existingDir.placeTwoOrder
         ) {
-          return false;
+          console.log("dir CHANGE");
+          return data;
         }
-        return true;
+        return existingDir;
       });
 
       console.log(
@@ -274,28 +291,29 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
         newDirs.map((d) => d.placeIdOne + "->" + d.placeIdTwo)
       );
 
-      const exists = directions.find(
+      const exists = newDirs.find(
         (dir) =>
           dir.placeIdOne === data.placeIdOne &&
           dir.placeIdTwo === data.placeIdTwo
       );
       if (!exists) {
-        console.log("dir not exists, adding");
+        console.log("dir not exists, ADDING");
         newDirs = [...newDirs, data];
       }
 
-      // newDirs = newDirs.filter((dir) => data.placeIdOne !== dir.placeIdTwo);
-      // newDirs = newDirs.filter((dir) => {
-      //   if (data.placeIdOne !== dir.placeIdTwo) {
-      //     return false;
-      //   }
-      //   return true;
-      // });
-
-      // console.log(
-      //   "current dirs after removal",
-      //   newDirs.map((d) => d.placeIdOne + "->" + d.placeIdTwo)
-      // );
+      console.log(
+        "!!!finalDirs",
+        newDirs.map(
+          (d) =>
+            d.placeIdOne +
+            "  " +
+            d.placeOneOrder +
+            "   ->    " +
+            d.placeIdTwo +
+            "  " +
+            d.placeTwoOrder
+        )
+      );
 
       return newDirs;
     });
