@@ -1,3 +1,4 @@
+import Image from "next/image";
 import SideBar from "./side-bar";
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -6,10 +7,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <div className="min-h-full">
         <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-gray-200 lg:bg-gray-100 lg:pt-5 lg:pb-4">
           <div className="flex flex-shrink-0 items-center px-6">
-            <img
+            <Image
               className="h-8 w-auto"
-              src="https://tailwindui.com/img/logos/workflow-logo-purple-500-mark-gray-700-text.svg"
-              alt="Workflow"
+              src="/fil-trips.svg"
+              alt="Fil trips"
+              height={0}
+              width={0}
+              priority={true}
             />
           </div>
           <SideBar />
