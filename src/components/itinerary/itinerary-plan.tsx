@@ -103,7 +103,7 @@ export const ItineraryPlan = ({
 
   return (
     <div>
-      <div className="flex w-full items-center">
+      <div className="flex w-full items-center px-10">
         <div className="flex-grow">
           <h3 className="text-base font-semibold leading-6 text-gray-900">
             {itinerary.name}
@@ -130,7 +130,7 @@ export const ItineraryPlan = ({
         </DropdownMenu>
       </div>
 
-      <div className="space-y-5 pt-5">
+      <div className="pt-5">
         {sortedPlaces && (
           <DndContext
             onDragStart={({ active }) => {
@@ -160,7 +160,7 @@ export const ItineraryPlan = ({
           >
             <SortableContext items={sortedPlaces.map((place) => place.id)}>
               {sortedPlaces.map((place, index) => (
-                <div key={place.id} className="space-y-5">
+                <div key={place.id}>
                   <Place
                     place={place}
                     selected={selectedPoi?.id === place.attractionId}
@@ -169,16 +169,18 @@ export const ItineraryPlan = ({
                     onDelete={onRemoveFromItinerary}
                   />
                   {index !== itinerary.places.length - 1 && (
-                    <PlaceDistance
-                      start={place}
-                      end={sortedPlaces[index + 1]}
-                      onDirectionsCalculated={(data) =>
-                        onDirectionsCalculated({
-                          ...data,
-                          itineraryId: itinerary.id,
-                        })
-                      }
-                    />
+                    <div className="py-2">
+                      <PlaceDistance
+                        start={place}
+                        end={sortedPlaces[index + 1]}
+                        onDirectionsCalculated={(data) =>
+                          onDirectionsCalculated({
+                            ...data,
+                            itineraryId: itinerary.id,
+                          })
+                        }
+                      />
+                    </div>
                   )}
                 </div>
               ))}

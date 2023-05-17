@@ -69,7 +69,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
         toast.error("Failed to remove place! Please try again later."),
     });
 
-  if (isTripLoading) {
+  if (isTripLoading || isItinerariesLoading) {
     return <LoadingPage />;
   }
 
@@ -341,12 +341,12 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
       </Head>
       <div>
         <div className="bg-white p-0">
-          <div className="mx-auto grid grid-cols-12">
-            <main className="col-span-5 p-6">
+          <div className="flex flex-col-reverse sm:flex-row">
+            <main className="z-10 p-6">
               {/* Page title & actions */}
-              <div className="flex items-center justify-between border-b border-gray-200 py-4 px-8">
+              <div className="flex items-center justify-between border-b border-gray-200 py-5 px-10">
                 <div>
-                  <h2 className="text-lg font-medium leading-6 text-gray-900">
+                  <h2 className="text-2xl font-medium leading-6 text-gray-900">
                     Itinerary constructor
                   </h2>
                   <p className="mt-1 text-sm text-gray-500">
@@ -368,10 +368,11 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                     onDirectionsCalculated={onDirectionsCalculated}
                   />
                 ))}
-
+              </div>
+              <div className="flex justify-center px-10 py-5">
                 <button
                   type="button"
-                  className="inline-flex items-center self-start rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-sm font-medium leading-4 text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  className="inline-flex items-center self-start rounded-md border border-transparent bg-indigo-600 px-10 py-2 text-sm font-medium leading-4 text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                   onClick={addItinerary}
                 >
                   <PlusIcon
@@ -382,10 +383,10 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                 </button>
               </div>
             </main>
-            <aside className="col-span-7">
+            <aside className="sticky top-0 z-10 w-full">
               <div className="sticky top-0">
-                <div className="flex h-screen flex-col items-center">
-                  <div className="z-0 h-full w-full">
+                <div className="relative flex h-72 flex-col items-center sm:h-screen">
+                  <div className="z-0 h-full w-full shadow-lg shadow-slate-500">
                     <DynamicMap
                       places={attractions || []}
                       itineraries={itineraries}
@@ -395,7 +396,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                     />
                   </div>
                   {selectedPoi && (
-                    <div className="absolute bottom-0 z-10 mb-5 h-2/5 w-11/12">
+                    <div className="fixed bottom-0 z-10 mb-5 h-3/5 w-11/12 shadow-lg shadow-slate-500 sm:absolute">
                       <PointOfInterestDetails
                         id={selectedPoi.id}
                         onClose={onClose}

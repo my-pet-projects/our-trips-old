@@ -59,7 +59,7 @@ export default function Map({
     <MapContainer
       center={[28.6142, 77.242]}
       zoom={14}
-      className="h-screen"
+      className="h-full"
       attributionControl={false}
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />

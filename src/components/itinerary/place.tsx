@@ -65,7 +65,7 @@ export const Place = ({
         onClick={() => onClick(place.attraction)}
         className={classNames(
           "ml-5 flex w-full flex-row items-center gap-5 rounded-lg border border-gray-200 bg-white p-4 shadow  hover:cursor-pointer hover:shadow-lg",
-          selected ? "shadow-xl" : "",
+          selected ? "shadow-lg" : "",
           active ? "" : "transition duration-300 ease-in-out"
         )}
       >

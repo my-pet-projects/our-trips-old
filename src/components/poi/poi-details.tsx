@@ -43,14 +43,21 @@ export const PointOfInterestDetails = ({
 
   return (
     <div className="h-full bg-slate-100">
-      <div className="flex h-full flex-col divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
-        {isLoading && <LoadingSpinner />}
+      <div className="flex h-full flex-col divide-y divide-gray-200 overflow-hidden rounded-lg bg-white">
+        {isLoading && (
+          <div className="flex h-full items-center justify-center">
+            <LoadingSpinner size={40} />
+          </div>
+        )}
         {!isLoading && poi && (
           <>
-            <div className="flex items-start justify-between px-5 py-5">
+            <div className="flex items-center justify-between px-5 py-5">
               <div className="flex flex-col text-lg font-medium text-gray-900">
-                <span>{poi.name}</span>
-                <span className="text-sm">{poi.nameLocal}</span>
+                <h5 className="text-lg font-medium leading-5 text-neutral-800">
+                  {poi.name}
+                  <br />
+                  <small className="text-neutral-500">{poi.nameLocal}</small>
+                </h5>
               </div>
               <div className="divide flex h-7 items-center">
                 <AppPopover buttonText="Itineraries" className="mr-5">
@@ -79,7 +86,7 @@ export const PointOfInterestDetails = ({
 
                 <button
                   type="button"
-                  className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  className="rounded-md bg-white pl-3 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                   onClick={onClose}
                 >
                   <span className="sr-only">Close panel</span>
