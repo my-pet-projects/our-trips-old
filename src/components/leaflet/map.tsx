@@ -7,6 +7,7 @@ import { GeoJSON, LayersControl, MapContainer, TileLayer } from "react-leaflet";
 import { AttractionMarker, AttractionMarkerData } from "./attraction-marker";
 import { CurrentCoordinates } from "./current-coordinates";
 import { LocationMarker } from "./current-location";
+import { FitMap } from "./fit-map";
 import { LocatePlace } from "./locate-place";
 import MarkerClusterGroup, { clusterIcon } from "./marker-cluster-group";
 
@@ -55,15 +56,19 @@ export default function Map({
 
   console.log("map directions", directions);
 
+  const placesToFit = itineraries
+    ? itineraries.flatMap((i) => i.places.flatMap((p) => p.attraction))
+    : places;
+
   return (
     <MapContainer
-      center={[28.6142, 77.242]}
+      center={[0, 0]}
       zoom={14}
       className="h-full"
       attributionControl={false}
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      <LayersControl position="topleft">
+      <LayersControl position="topright">
         <LayersControl.Overlay name="All available places" checked>
           <MarkerClusterGroup
             chunkedLoading
@@ -102,10 +107,6 @@ export default function Map({
           </LayersControl.Overlay>
         ))}
       </LayersControl>
-
-      {/* <FitMap items={places} /> */}
-      <CurrentCoordinates />
-      <LocationMarker />
       {selectedPoi && (
         <>
           <AttractionMarker
@@ -116,56 +117,53 @@ export default function Map({
           <LocatePlace item={selectedPoi} />
         </>
       )}
-      {directions &&
-        directions.map((dir, idx) => (
-          <GeoJSON
-            key={`${dir.placeIdOne}|${dir.placeIdTwo}`}
-            data={dir}
-            style={(feature) => {
-              if (dir.attractionIdOne === selectedPoi?.id) {
-                return {
-                  color: "#1660c7",
-                  weight: 5,
-                  opacity: 1,
-                };
-              }
+      {directions.map((dir, idx) => (
+        <GeoJSON
+          key={`${dir.placeIdOne}|${dir.placeIdTwo}`}
+          data={dir}
+          style={(feature) => {
+            if (dir.attractionIdOne === selectedPoi?.id) {
               return {
-                color: "#3388ff",
-                weight: 3,
-                opacity: 0.7,
+                color: "#1660c7",
+                weight: 5,
+                opacity: 1,
               };
-            }}
-            onEachFeature={(feature: Feature, layer: Layer): void => {
-              layer.on({
-                mouseover: (e: LeafletMouseEvent): void => {
-                  const distance = (
-                    e.target.feature.properties.summary.distance / 1000
-                  ).toFixed(2);
-                  const duration = (
-                    e.target.feature.properties.summary.duration / 60
-                  ).toFixed(2);
-                  layer.bindTooltip(
-                    `Distance: ${distance} km<br/> Duration: ${duration} min`,
-                    {
-                      direction: "center",
-                      permanent: true,
-                    }
-                  );
-                  layer.openTooltip();
-                },
-                mouseout: (): void => {
-                  layer.unbindTooltip();
-                  layer.closeTooltip();
-                },
-              });
-            }}
-          />
-        ))}
-      {/* <LeafletMyPosition /> */}
-
-      {/* <LocateControl position="topleft" /> */}
-      {/* <CenterCurrentLocation location={userLocation} /> */}
-      {/* <CurrentPosition /> */}
+            }
+            return {
+              color: "#3388ff",
+              weight: 3,
+              opacity: 0.7,
+            };
+          }}
+          onEachFeature={(feature: Feature, layer: Layer): void => {
+            layer.on({
+              mouseover: (e: LeafletMouseEvent): void => {
+                const distance = (
+                  e.target.feature.properties.summary.distance / 1000
+                ).toFixed(2);
+                const duration = (
+                  e.target.feature.properties.summary.duration / 60
+                ).toFixed(2);
+                layer.bindTooltip(
+                  `Distance: ${distance} km<br/> Duration: ${duration} min`,
+                  {
+                    direction: "center",
+                    permanent: true,
+                  }
+                );
+                layer.openTooltip();
+              },
+              mouseout: (): void => {
+                layer.unbindTooltip();
+                layer.closeTooltip();
+              },
+            });
+          }}
+        />
+      ))}
+      <FitMap items={placesToFit} />
+      <CurrentCoordinates />
+      <LocationMarker />
     </MapContainer>
   );
 }

@@ -10,7 +10,7 @@ type PlaceImagesProps = {
 };
 
 export const PlacesImages = ({ place }: PlaceImagesProps) => {
-  const { data: images, isLoading } =
+  const { data: searchResult, isLoading } =
     api.attraction.findAttractionImages.useQuery({
       name: place.nameLocal ?? place.name,
       city: place.city.name,
@@ -37,14 +37,15 @@ export const PlacesImages = ({ place }: PlaceImagesProps) => {
       {!isLoading && (
         <>
           <div className="-ml-2 -mr-2 flex flex-wrap">
-            {images?.map((image, idx) => (
-              <div key={idx} className="flex w-1/3 p-2">
+            {searchResult?.images.map((image, idx) => (
+              <div key={idx} className="flex w-1/3 p-2 sm:w-1/6">
                 <Image
                   alt="gallery"
-                  className="block h-full max-h-40 w-full rounded-lg object-cover object-center"
+                  className="block h-full max-h-48 w-full rounded-lg object-cover object-center"
                   src={image.src}
                   width={200}
                   height={200}
+                  quality={100}
                 />
               </div>
             ))}

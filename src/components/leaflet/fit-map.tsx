@@ -1,13 +1,14 @@
 import { BasicAttractionInfo } from "@/server/api/routers/attraction";
 import { latLngBounds } from "leaflet";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useMap } from "react-leaflet";
 
 export function FitMap({ items }: { items: BasicAttractionInfo[] }) {
   const map = useMap();
+  const [isFit, setIsFit] = useState(false);
 
   useEffect(() => {
-    if (!items) {
+    if (!items || isFit) {
       return;
     }
     const markerBounds = latLngBounds([]);
@@ -19,7 +20,8 @@ export function FitMap({ items }: { items: BasicAttractionInfo[] }) {
       markerBounds.extend(latLng);
     });
     markerBounds.isValid() && map.fitBounds(markerBounds);
-  }, [items, map]);
+    setIsFit(true);
+  }, [items, map, isFit]);
 
   return null;
 }

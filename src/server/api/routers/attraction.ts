@@ -141,7 +141,7 @@ export const attractionRouter = createTRPCRouter({
         });
       });
 
-      return attractionImages;
+      return { images: attractionImages, url: url };
     }),
 
   getAttractions: publicProcedure
