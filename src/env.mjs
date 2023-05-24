@@ -21,6 +21,7 @@ const server = z.object({
   ),
   CREDENTIALS_PROVIDER_URL: z.string().min(1),
   OPENROUTE_SECRET: z.string().min(1),
+  MAPBOX_SECRET: z.string().min(1),
 });
 
 /**
@@ -45,6 +46,7 @@ const processEnv = {
   CREDENTIALS_PROVIDER_URL: process.env.CREDENTIALS_PROVIDER_URL,
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   OPENROUTE_SECRET: process.env.OPENROUTE_SECRET,
+  MAPBOX_SECRET: process.env.MAPBOX_SECRET,
 };
 
 // Don't touch the part below

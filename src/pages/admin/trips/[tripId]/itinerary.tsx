@@ -1,4 +1,4 @@
-import { LoadingPage } from "@/components/common/loading";
+import { LoadingPage, LoadingSpinner } from "@/components/common/loading";
 import { ItineraryPlan } from "@/components/itinerary/itinerary-plan";
 import { DynamicMap } from "@/components/leaflet/dynamic-map";
 import { PointOfInterestDetails } from "@/components/poi/poi-details";
@@ -15,6 +15,7 @@ import { GetStaticProps, NextPage } from "next";
 import Head from "next/head";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { FaRegFilePdf } from "react-icons/fa";
 
 const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
   const [selectedPoi, setSelectedPoi] = useState<BasicAttractionInfo>();
@@ -48,6 +49,9 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
         },
       }
     );
+
+  const { mutate: generatePdf, isLoading: isPdfGenerating } =
+    api.itinerary.generatePdf.useMutation();
 
   const { mutate: createItinerary, isLoading: isCreating } =
     api.itinerary.createItinerary.useMutation();
@@ -106,6 +110,24 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
           } else {
             toast.error("Failed to create itinerary! Please try again later.");
           }
+        },
+      }
+    );
+  };
+
+  const generatePdfItinerary = () => {
+    generatePdf(
+      {
+        tripId: tripId,
+      },
+      {
+        onSuccess(data) {
+          console.log(data);
+          toast.success("PDF itinerary generated successfully!");
+        },
+        onError(data) {
+          console.log(data);
+          toast.success("Failed to generate PDF report!");
         },
       }
     );
@@ -353,6 +375,16 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
                     Build your itinerary for the trip.
                   </p>
                 </div>
+                {!isPdfGenerating && (
+                  <button
+                    className="group flex items-center"
+                    type="button"
+                    onClick={generatePdfItinerary}
+                  >
+                    <FaRegFilePdf className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+                  </button>
+                )}
+                {isPdfGenerating && <LoadingSpinner />}
               </div>
               {/* Itinerary list */}
               <div className="mt-5 flex flex-col space-y-5">

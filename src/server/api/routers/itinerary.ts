@@ -1,7 +1,9 @@
 import { env } from "@/env.mjs";
 import { Coordinates } from "@/types/coordinates";
 import { RouterOutputs } from "@/utils/api";
+import fs from "fs";
 import { BBox, GeoJsonTypes } from "geojson";
+import PDFDocument from "pdfkit";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
@@ -231,7 +233,109 @@ export const itineraryRouter = createTRPCRouter({
         attractionIdTwo: input.placeTwo.attractionId,
       };
     }),
+
+  generatePdf: publicProcedure
+    .input(
+      z.object({
+        tripId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const itineraries = await ctx.prisma.itinerary.findMany({
+        where: {
+          tripId: input.tripId,
+        },
+        include: {
+          places: {
+            include: {
+              attraction: {
+                include: {
+                  city: true,
+                },
+              },
+            },
+            orderBy: {
+              order: "asc",
+            },
+          },
+          color: true,
+        },
+        orderBy: {
+          order: "asc",
+        },
+      });
+
+      const stream = await generatePdf(itineraries);
+      // await fsPromises.writeFile("test.pdf", stream);
+
+      return {};
+    }),
 });
+
+const generatePdf = async (itineraries: Itinerary[]) => {
+  for (const itin of itineraries) {
+    const ws = fs.createWriteStream(`${itin.name}.pdf`);
+    const doc = new PDFDocument();
+    doc.pipe(ws);
+    doc.registerFont("Heading Font", "public/fonts/noto-sans-bold.ttf");
+    doc.registerFont("Normal Font", "public/fonts/noto-sans-regular.ttf");
+    doc.fontSize(10);
+    doc.font("Normal Font");
+
+    doc.font("Heading Font").fontSize(20).text(itin.name);
+
+    for (const place of itin.places) {
+      const data = await fetchStaticMap({
+        latitude: place.attraction.latitude,
+        longitude: place.attraction.longitude,
+      });
+
+      doc
+        .font("Heading Font")
+        .fontSize(15)
+        .text(`${place.order} ${place.attraction.name}`);
+      doc.fontSize(10).text(place.attraction.nameLocal || "");
+
+      const imgHeight = 200;
+      if (
+        imgHeight +
+          doc.y +
+          doc.currentLineHeight(true) +
+          doc.page.margins.top +
+          doc.page.margins.bottom >
+        doc.page.maxY()
+      ) {
+        doc.addPage();
+      }
+
+      doc.image(data, {
+        height: imgHeight,
+        align: "center",
+        valign: "center",
+      });
+      doc.moveDown();
+
+      doc
+        .fontSize(10)
+        .font("Normal Font")
+        .text(place.attraction.description || "", { align: "justify" });
+      doc.moveDown();
+    }
+    doc.end();
+  }
+};
+
+const fetchStaticMap = async (coordinates: Coordinates) => {
+  const host = "https://api.mapbox.com";
+  const zoom = "15,0";
+  const size = "300x200@2x";
+  const marker = `pin-l+ba2626(${coordinates.longitude},${coordinates.latitude})`;
+  const url = `${host}/styles/v1/mapbox/streets-v11/static/${marker}/${coordinates.longitude},${coordinates.latitude},${zoom}/${size}?access_token=${env.MAPBOX_SECRET}`;
+
+  const res = await fetch(url);
+  const data = await res.arrayBuffer();
+  return data;
+};
 
 const fetchDirections = async (start: Coordinates, end: Coordinates) => {
   const host = "https://api.openrouteservice.org";
