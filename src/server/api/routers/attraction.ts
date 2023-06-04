@@ -250,8 +250,8 @@ const parseRutravellerSite = async (url: string) => {
   const coordinates = mapLink?.match(/[+-]?([0-9]*[.])?[0-9]+/g);
 
   return {
-    name: names?.groups?.name || combinedName,
-    localName: names?.groups?.localName || combinedName,
+    name: names?.groups?.name?.trim() || combinedName,
+    localName: names?.groups?.localName?.trim() || combinedName,
     latitude: coordinates && coordinates[0] ? +coordinates[0] : 0,
     longitude: coordinates && coordinates[1] ? +coordinates[1] : 0,
     description: description,

@@ -46,6 +46,7 @@ export const PlacesImages = ({ place }: PlaceImagesProps) => {
                   width={200}
                   height={200}
                   quality={100}
+                  unoptimized={true}
                 />
               </div>
             ))}
