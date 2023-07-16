@@ -127,7 +127,7 @@ const TripItineraryPage: NextPage<{ tripId: string }> = ({ tripId }) => {
         },
         onError(data) {
           console.log(data);
-          toast.success("Failed to generate PDF report!");
+          toast.error("Failed to generate PDF report!");
         },
       }
     );

@@ -1,9 +1,11 @@
 import { env } from "@/env.mjs";
+import { ItineraryMapFetcher } from "@/server/services/itinerary-map-fetcher";
+import { ItineraryPdfGenerator } from "@/server/services/itinerary-pdf-generator";
 import { Coordinates } from "@/types/coordinates";
 import { RouterOutputs } from "@/utils/api";
-import fs from "fs";
+import logger from "@/utils/logger";
+import { TRPCError } from "@trpc/server";
 import { BBox, GeoJsonTypes } from "geojson";
-import PDFDocument from "pdfkit";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
@@ -265,76 +267,100 @@ export const itineraryRouter = createTRPCRouter({
         },
       });
 
-      const stream = await generatePdf(itineraries);
-      // await fsPromises.writeFile("test.pdf", stream);
+      for (const itin of itineraries) {
+        const mapFetcher = new ItineraryMapFetcher(itin);
+
+        let placesMap: Map<string, ArrayBuffer>;
+        try {
+          placesMap = await mapFetcher.fetchPlacesStaticMap();
+        } catch (error) {
+          logger.error(
+            error,
+            "Failed to fetch static map for itinerary places."
+          );
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to communicate with the upstream.",
+            cause: error,
+          });
+        }
+
+        let overviewMap: ArrayBuffer;
+        try {
+          overviewMap = await mapFetcher.fetchOverviewMap();
+        } catch (error) {
+          logger.error(error, "Failed to fetch static map for the itinerary.");
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to communicate with the upstream.",
+            cause: error,
+          });
+        }
+
+        try {
+          const itinPdfGenerator = new ItineraryPdfGenerator();
+          itinPdfGenerator.generate(itin, overviewMap, placesMap);
+        } catch (error) {
+          logger.error(error, "Failed to generate PDF.");
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to generate PDF.",
+            cause: error,
+          });
+        }
+      }
 
       return {};
     }),
 });
 
-const generatePdf = async (itineraries: Itinerary[]) => {
-  for (const itin of itineraries) {
-    const ws = fs.createWriteStream(`${itin.name}.pdf`);
-    const doc = new PDFDocument();
-    doc.pipe(ws);
-    doc.registerFont("Heading Font", "public/fonts/noto-sans-bold.ttf");
-    doc.registerFont("Normal Font", "public/fonts/noto-sans-regular.ttf");
-    doc.fontSize(10);
-    doc.font("Normal Font");
+/**
+ * @throws Will throw an error if the call to MapBox API will fail.
+ */
+const fetchOverviewStaticMap = async (coordinates: Coordinates[]) => {
+  const host = "https://api.mapbox.com";
+  const size = "1280x1024@2x";
+  const markers = [] as string[];
+  coordinates.forEach((coord) => {
+    markers.push(`pin-l+ba2626(${coord.longitude},${coord.latitude})`);
+  });
+  const marker = markers.join(",");
+  const url = `${host}/styles/v1/mapbox/streets-v11/static/${marker}/auto/${size}?access_token=${env.MAPBOX_SECRET}`;
 
-    doc.font("Heading Font").fontSize(20).text(itin.name);
-
-    for (const place of itin.places) {
-      const data = await fetchStaticMap({
-        latitude: place.attraction.latitude,
-        longitude: place.attraction.longitude,
-      });
-
-      doc
-        .font("Heading Font")
-        .fontSize(15)
-        .text(`${place.order} ${place.attraction.name}`);
-      doc.fontSize(10).text(place.attraction.nameLocal || "");
-
-      const imgHeight = 200;
-      if (
-        imgHeight +
-          doc.y +
-          doc.currentLineHeight(true) +
-          doc.page.margins.top +
-          doc.page.margins.bottom >
-        doc.page.maxY()
-      ) {
-        doc.addPage();
-      }
-
-      doc.image(data, {
-        height: imgHeight,
-        align: "center",
-        valign: "center",
-      });
-      doc.moveDown();
-
-      doc
-        .fontSize(10)
-        .font("Normal Font")
-        .text(place.attraction.description || "", { align: "justify" });
-      doc.moveDown();
+  try {
+    const response = await fetch(url);
+    if (!response?.ok) {
+      const responseText = await response.text();
+      throw new Error(`HTTP response code ${response.status}: ${responseText}`);
     }
-    doc.end();
+    const data = await response.arrayBuffer();
+    return data;
+  } catch (error) {
+    throw error;
   }
 };
 
+/**
+ * @throws Will throw an error if the call to MapBox API will fail.
+ */
 const fetchStaticMap = async (coordinates: Coordinates) => {
   const host = "https://api.mapbox.com";
   const zoom = "15,0";
-  const size = "300x200@2x";
+  const size = "800x600";
   const marker = `pin-l+ba2626(${coordinates.longitude},${coordinates.latitude})`;
   const url = `${host}/styles/v1/mapbox/streets-v11/static/${marker}/${coordinates.longitude},${coordinates.latitude},${zoom}/${size}?access_token=${env.MAPBOX_SECRET}`;
 
-  const res = await fetch(url);
-  const data = await res.arrayBuffer();
-  return data;
+  try {
+    const response = await fetch(url);
+    if (!response?.ok) {
+      const responseText = await response.text();
+      throw new Error(`HTTP response code ${response.status}: ${responseText}`);
+    }
+    const data = await response.arrayBuffer();
+    return data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 const fetchDirections = async (start: Coordinates, end: Coordinates) => {
