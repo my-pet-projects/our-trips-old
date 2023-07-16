@@ -1,14 +1,14 @@
 import { api } from "@/utils/api";
-import type { City } from "@prisma/client";
 import classNames from "classnames";
 import { useCombobox } from "downshift";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { LoadingSpinner } from "../common/loading";
+import { City } from "@prisma/client";
 
 type CityPickerProps = {
   countryCode?: string;
   selectedCity?: City | null;
-  onChange: (event?: string) => void;
+  onChange: (event: string | ChangeEvent<Element>) => void;
   onSelectedCityChange: (city?: City | null) => void;
 };
 
@@ -64,7 +64,7 @@ export const CityPicker = ({
   } = useCombobox({
     id: "city-picker",
     onSelectedItemChange: ({ inputValue, selectedItem }) => {
-      onChange(inputValue);
+      onChange(inputValue || "");
       onSelectedCityChange(selectedItem);
       setCurrentCity(selectedItem);
     },
@@ -92,7 +92,6 @@ export const CityPicker = ({
             placeholder={
               countryCode ? "Select a city" : "Select a country first"
             }
-            autoComplete="off"
             className="w-full rounded-md border border-gray-300  py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
             {...getInputProps({ disabled: isLoading })}
           />

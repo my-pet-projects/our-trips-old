@@ -1,5 +1,5 @@
 import type { City, Country } from "@prisma/client";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { CityPicker } from "./city-picker";
 import { CountryPicker } from "./country-picker";
 
@@ -24,7 +24,7 @@ const GeographyPicker: React.FC<{
     props.onCityChange(selectedCity);
   }, [props, selectedCountry, selectedCity]);
 
-  function onChange(event: string | undefined): void {
+  function onChange(event: string | ChangeEvent<Element>): void {
     console.log(event);
   }
 

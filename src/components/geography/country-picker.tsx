@@ -4,11 +4,11 @@ import type { Country } from "@prisma/client";
 import classNames from "classnames";
 import { useCombobox } from "downshift";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 
 type CountryPickerProps = {
   selectedCountry?: Country | null;
-  onChange: (event?: string) => void;
+  onChange: (event: string | ChangeEvent<Element>) => void;
   onSelectedCountryChange: (country?: Country | null) => void;
 };
 
@@ -51,7 +51,7 @@ export const CountryPicker = ({
   } = useCombobox({
     id: "country-picker",
     onSelectedItemChange: ({ inputValue, selectedItem }) => {
-      onChange(inputValue);
+      onChange(inputValue || "");
       onSelectedCountryChange(selectedItem);
       setCurrentCountry(selectedItem);
     },
@@ -76,7 +76,6 @@ export const CountryPicker = ({
       <div className="relative mt-1">
         <input
           placeholder="Select a country"
-          autoComplete="off"
           className="w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           {...getInputProps({ disabled: isLoading })}
         />
