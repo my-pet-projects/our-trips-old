@@ -1,9 +1,9 @@
 import { api } from "@/utils/api";
+import { City } from "@prisma/client";
 import classNames from "classnames";
 import { useCombobox } from "downshift";
 import { ChangeEvent, useEffect, useState } from "react";
 import { LoadingSpinner } from "../common/loading";
-import { City } from "@prisma/client";
 
 type CityPickerProps = {
   countryCode?: string;
@@ -24,7 +24,7 @@ export const CityPicker = ({
     },
     {
       enabled: !!countryCode,
-    }
+    },
   );
 
   const [currentCountryCode, setCurrentCountryCode] = useState<
@@ -73,8 +73,8 @@ export const CityPicker = ({
         allItems.filter(
           (city) =>
             !inputValue ||
-            city.name.toLowerCase().includes(inputValue.toLowerCase())
-        )
+            city.name.toLowerCase().includes(inputValue.toLowerCase()),
+        ),
       );
     },
     items: filteredItems,
@@ -132,7 +132,7 @@ export const CityPicker = ({
       <ul
         className={classNames(
           "absolute z-10 mt-1 max-h-60 w-2/5 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm",
-          !(isOpen && filteredItems.length) ? "hidden" : ""
+          !(isOpen && filteredItems.length) ? "hidden" : "",
         )}
         {...getMenuProps()}
       >
@@ -142,9 +142,9 @@ export const CityPicker = ({
               className={classNames(
                 highlightedIndex === index && "bg-blue-300",
                 selectedCity === item && "font-bold",
-                "flex flex-col py-2 px-3 shadow-sm"
+                "flex flex-col px-3 py-2 shadow-sm",
               )}
-              key={item.id}
+              key={item.oldIdForDelete}
               {...getItemProps({ item, index })}
             >
               <div className="flex items-center">
@@ -152,7 +152,7 @@ export const CityPicker = ({
                   <span
                     className={classNames(
                       "truncate leading-tight",
-                      selectedCity === item && "font-semibold"
+                      selectedCity === item && "font-semibold",
                     )}
                   >
                     {item.name}
@@ -162,7 +162,7 @@ export const CityPicker = ({
                       "truncate text-xs leading-tight text-gray-500",
                       selectedCity === item
                         ? "text-indigo-200"
-                        : "text-gray-500"
+                        : "text-gray-500",
                     )}
                   >
                     {item.countryCode}

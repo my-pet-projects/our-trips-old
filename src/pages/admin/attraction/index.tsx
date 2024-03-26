@@ -13,7 +13,7 @@ function Attractions() {
   const itemsPerPage = 10;
 
   const { data: result, isLoading } = api.attraction.getAttractions.useQuery({
-    cityId: city?.id,
+    cityId: city?.oldIdForDelete,
     countryCode: country?.cca2,
     take: itemsPerPage,
     skip: (currentPage - 1) * itemsPerPage,
@@ -25,13 +25,13 @@ function Attractions() {
         <title>Attraction catalog</title>
       </Head>
       {/* Page title & actions */}
-      <div className="flex items-center justify-between border-b border-gray-200 py-4 px-8">
+      <div className="flex items-center justify-between border-b border-gray-200 px-8 py-4">
         <div className="min-w-0 flex-1">
           <h1 className="text-lg font-medium leading-6 text-gray-900">
             Attractions
           </h1>
         </div>
-        <div className="mt-0 ml-4 flex">
+        <div className="ml-4 mt-0 flex">
           <Link
             type="button"
             href="/admin/attraction/create"

@@ -46,7 +46,7 @@ export default function Map({
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       {cities?.map((city) => (
         <Marker
-          key={city.id}
+          key={city.oldIdForDelete}
           position={[city.latitude, city.longitude]}
           icon={icon}
         >

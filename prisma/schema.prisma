@@ -23,7 +23,7 @@ model Country {
 }
 
 model City {
-    id               String       @id
+    oldIdForDelete   String       @id
     name             String
     alternateNames   String?      @db.Text
     countryCode      String       @db.VarChar(2)
@@ -53,7 +53,7 @@ model Attraction {
     isPredefined   Boolean          @default(false)
     originalUri    String?
     cityId         String
-    city           City             @relation(fields: [cityId], references: [id])
+    city           City             @relation(fields: [cityId], references: [oldIdForDelete])
     oldId          Int?
     ItineraryPlace ItineraryPlace[]
 

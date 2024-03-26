@@ -1,15 +1,15 @@
 import type { GetServerSidePropsContext } from "next";
 import {
   getServerSession,
-  type NextAuthOptions,
   type DefaultSession,
   type DefaultUser,
+  type NextAuthOptions,
   type User,
 } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
 import { type DefaultJWT } from "next-auth/jwt";
-import { http } from "./http";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { env } from "../env.mjs";
+import { http } from "./http";
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
@@ -66,7 +66,7 @@ export const authOptions: NextAuthOptions = {
               method: "POST",
               body: JSON.stringify(credentials),
               headers: { "Content-Type": "application/json" },
-            }
+            },
           );
           if (data) {
             return data;

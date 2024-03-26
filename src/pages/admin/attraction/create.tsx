@@ -63,7 +63,7 @@ const AddAttraction = () => {
       onError: (e) => {
         toast.error(`Failed to parse attraction! ${e.message}`);
       },
-    }
+    },
   );
 
   useEffect(() => {
@@ -104,14 +104,14 @@ const AddAttraction = () => {
         latitude: data.latitude,
         longitude: data.longitude,
         originalUri: data.url,
-        cityId: selectedCity.id,
+        cityId: selectedCity.oldIdForDelete,
       },
       {
         onSuccess: () => {
           toast.success("Attraction created successfully!");
           reset({
             countryId: selectedCountry?.cca2,
-            cityId: selectedCity.id,
+            cityId: selectedCity.oldIdForDelete,
             attractionName: "",
             localName: "",
             address: "",
@@ -134,7 +134,7 @@ const AddAttraction = () => {
             toast.error("Failed to create attraction! Please try again later.");
           }
         },
-      }
+      },
     );
   };
 
@@ -226,7 +226,7 @@ const AddAttraction = () => {
               <input
                 type="text"
                 id="attractionName"
-                className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-gray-900 focus:outline-none focus:ring-gray-900 sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-900 focus:outline-none focus:ring-gray-900 sm:text-sm"
                 {...register("attractionName", { disabled: isCreating })}
               />
               {errors.attractionName && (
@@ -246,7 +246,7 @@ const AddAttraction = () => {
               <input
                 type="text"
                 id="local-name"
-                className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-gray-900 focus:outline-none focus:ring-gray-900 sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-900 focus:outline-none focus:ring-gray-900 sm:text-sm"
                 {...register("localName", { disabled: isCreating })}
               />
             </div>
@@ -261,7 +261,7 @@ const AddAttraction = () => {
               <input
                 type="text"
                 id="address"
-                className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-gray-900 focus:outline-none focus:ring-gray-900 sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-900 focus:outline-none focus:ring-gray-900 sm:text-sm"
                 {...register("address", { disabled: isCreating })}
               />
             </div>
@@ -276,7 +276,7 @@ const AddAttraction = () => {
               <input
                 type="text"
                 id="latitude"
-                className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-gray-900 focus:outline-none focus:ring-gray-900 sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-900 focus:outline-none focus:ring-gray-900 sm:text-sm"
                 {...register("latitude", {
                   valueAsNumber: true,
                   disabled: isCreating,
@@ -300,7 +300,7 @@ const AddAttraction = () => {
               <input
                 type="text"
                 id="longitude"
-                className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-gray-900 focus:outline-none focus:ring-gray-900 sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-900 focus:outline-none focus:ring-gray-900 sm:text-sm"
                 {...register("longitude", {
                   valueAsNumber: true,
                   disabled: isCreating,
@@ -319,7 +319,7 @@ const AddAttraction = () => {
                   target="_blank"
                   href={createMapLink(
                     coordinates.latitude,
-                    coordinates.longitude
+                    coordinates.longitude,
                   )}
                   rel="noreferrer"
                 >
@@ -338,7 +338,7 @@ const AddAttraction = () => {
               <input
                 type="text"
                 id="url"
-                className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-gray-900 focus:outline-none focus:ring-gray-900 sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-900 focus:outline-none focus:ring-gray-900 sm:text-sm"
                 {...register("url", {
                   disabled: isCreating,
                   onChange: (e) => setUrl(e.target.value),
@@ -349,7 +349,7 @@ const AddAttraction = () => {
             <div className="col-span-1 flex items-end">
               <button
                 type="button"
-                className="rounded-md border border-transparent bg-gray-800 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
+                className="rounded-md border border-transparent bg-gray-800 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
                 onClick={() => refetch()}
               >
                 Parse
@@ -366,18 +366,18 @@ const AddAttraction = () => {
               <textarea
                 rows={15}
                 id="description"
-                className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-gray-900 focus:outline-none focus:ring-gray-900 sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-900 focus:outline-none focus:ring-gray-900 sm:text-sm"
                 {...register("description", { disabled: isCreating })}
               />
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-end bg-gray-50 py-3 px-6">
+        <div className="flex items-center justify-end bg-gray-50 px-6 py-3">
           {!isCreating && (
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-md border border-transparent bg-gray-800 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
+              className="rounded-md border border-transparent bg-gray-800 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
             >
               Save
             </button>

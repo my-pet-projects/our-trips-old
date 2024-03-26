@@ -25,7 +25,7 @@ export const attractionRouter = createTRPCRouter({
         longitude: z.number(),
         originalUri: z.string().optional().nullable(),
         cityId: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const voteInDb = await ctx.prisma.attraction.create({
@@ -48,7 +48,7 @@ export const attractionRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const result = await ctx.prisma.attraction.delete({
@@ -71,7 +71,7 @@ export const attractionRouter = createTRPCRouter({
         longitude: z.number(),
         originalUri: z.string().optional().nullable(),
         cityId: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const attraction = await ctx.prisma.attraction.update({
@@ -97,7 +97,7 @@ export const attractionRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       return await ctx.prisma.attraction.findFirstOrThrow({
@@ -119,7 +119,7 @@ export const attractionRouter = createTRPCRouter({
       z.object({
         name: z.string(),
         city: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const name = input.name.replaceAll(" ", "+");
@@ -151,7 +151,7 @@ export const attractionRouter = createTRPCRouter({
         countryCode: z.string().optional(),
         skip: z.number(),
         take: z.number(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const whereClause = {
@@ -188,7 +188,7 @@ export const attractionRouter = createTRPCRouter({
       z.object({
         cityId: z.string().optional(),
         countryCodes: z.array(z.string()).optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const result = await ctx.prisma.attraction.findMany({
@@ -208,7 +208,7 @@ export const attractionRouter = createTRPCRouter({
           name: true,
           city: {
             select: {
-              id: true,
+              oldIdForDelete: true,
               name: true,
             },
           },
@@ -236,7 +236,7 @@ const parseRutravellerSite = async (url: string) => {
 
   const cherioRoot = cheerio.load(data);
   const description = cherioRoot(
-    ".place-descr .place-descr__box .place-descr__txt"
+    ".place-descr .place-descr__box .place-descr__txt",
   )
     .text()
     .trim()
@@ -264,18 +264,18 @@ const parseVotpuskSite = async (url: string) => {
   const data = await res.text();
 
   const cherioRoot = cheerio.load(data);
-  const description = cherioRoot(".landmark-info__text p")
+  const description = cherioRoot(".ln-hl")
     .text()
     .trim()
     .replaceAll("\n\n", "\n");
-  const name = cherioRoot(".block-head__title").text().trim();
+  const name = cherioRoot(".separate-title__name").text().trim();
   const subText = cherioRoot(".block-head__subtitle").text().trim();
   const localName = /Название на английском языке - (?<localName>.*)./g.exec(
-    subText
+    subText,
   );
   const coordinates =
     /\"latitude\"\:(?<lat>[0-9]*[.][0-9]*),"longitude":(?<lon>[0-9]*[.][0-9]*)/g.exec(
-      cherioRoot.html()
+      cherioRoot.html(),
     );
 
   return {
