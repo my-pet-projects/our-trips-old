@@ -1,37 +1,39 @@
 generator client {
-    provider = "prisma-client-js"
+    provider        = "prisma-client-js"
+    previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-    provider          = "mysql"
-    url               = env("DATABASE_URL")
-    shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
-    relationMode      = "prisma" // prisma relation mode is required by PlanetScale
+    provider = "sqlite"
+    url      = env("TURSO_DATABASE_URL")
+    // relationMode = "prisma" // prisma relation mode is required by PlanetScale
 }
 
 model Country {
-    cca2             String             @id @db.VarChar(2)
-    cca3             String             @db.VarChar(3)
-    ccn3             String?            @db.VarChar(3)
-    nameCommon       String
-    nameOfficial     String
+    cca2             String             @id
+    cca3             String
+    ccn3             String?
+    nameCommon       String             @map("name_common")
+    nameOfficial     String             @map("name_official")
     region           String
     subregion        String?
-    flagPng          String
+    flagPng          String             @map("flag_url")
     cities           City[]
     TripDestinations TripDestinations[]
+
+    @@map("countries")
 }
 
 model City {
     oldIdForDelete   String       @id
     name             String
-    alternateNames   String?      @db.Text
-    countryCode      String       @db.VarChar(2)
-    admin1Code       String?
-    admin2Code       String?
-    admin3Code       String?
-    admin4Code       String?
-    modificationDate DateTime     @db.Date
+    alternateNames   String?      @map("alternate_names")
+    countryCode      String       @map("country_code")
+    admin1Code       String?      @map("admin1_code")
+    admin2Code       String?      @map("admin2_code")
+    admin3Code       String?      @map("admin3_code")
+    admin4Code       String?      @map("admin4_code")
+    modificationDate DateTime     @map("modification_date")
     population       Int?
     latitude         Float
     longitude        Float
@@ -39,88 +41,98 @@ model City {
     Attraction       Attraction[]
 
     @@index([countryCode])
+    @@map("cities")
 }
 
 model Attraction {
     id             String           @id @default(cuid())
     name           String
-    nameLocal      String?
-    description    String?          @db.Text
+    nameLocal      String?          @map("name_local")
+    description    String?
     address        String?
     latitude       Float            @default(0)
     longitude      Float            @default(0)
-    isMustSee      Boolean          @default(false)
-    isPredefined   Boolean          @default(false)
-    originalUri    String?
-    cityId         String
+    isMustSee      Boolean          @default(false) @map("is_must_see")
+    isPredefined   Boolean          @default(false) @map("is_predefined")
+    originalUri    String?          @map("original_uri")
+    cityId         String           @map("city_id")
     city           City             @relation(fields: [cityId], references: [oldIdForDelete])
-    oldId          Int?
+    oldId          Int?             @map("old_id")
     ItineraryPlace ItineraryPlace[]
 
     @@index([cityId])
+    @@map("attractions")
 }
 
 model Trip {
     id           String             @id @default(cuid())
     name         String
-    startDate    DateTime?
-    endDate      DateTime?
+    startDate    DateTime?          @map("start_date")
+    endDate      DateTime?          @map("end_date")
     destinations TripDestinations[]
-    oldId        Int?
+    oldId        Int?               @map("old_id")
     Itinerary    Itinerary[]
+
+    @@map("trips")
 }
 
 model TripDestinations {
     trip      Trip    @relation(fields: [tripId], references: [id])
-    tripId    String
+    tripId    String  @map("trip_id")
     country   Country @relation(fields: [countryId], references: [cca2])
-    countryId String
+    countryId String  @map("country_id")
 
     @@id([tripId, countryId])
     @@unique([tripId, countryId])
     @@index([tripId])
     @@index([countryId])
+    @@map("trip_destinations")
 }
 
 model Itinerary {
     id      String           @id @default(cuid())
     name    String
     trip    Trip             @relation(fields: [tripId], references: [id])
-    tripId  String
+    tripId  String           @map("trip_id")
     order   Int
     places  ItineraryPlace[]
-    colorId Int
+    colorId Int              @map("color_id")
     color   Color            @relation(fields: [colorId], references: [id])
 
     @@index([tripId])
     @@index([colorId])
+    @@map("itineraries")
 }
 
 model ItineraryPlace {
     id           String     @id @default(cuid())
     itinerary    Itinerary  @relation(fields: [itineraryId], references: [id])
-    itineraryId  String
+    itineraryId  String     @map("itinerary_id")
     attraction   Attraction @relation(fields: [attractionId], references: [id])
-    attractionId String
+    attractionId String     @map("attraction_id")
     order        Int
 
     @@unique([itineraryId, attractionId])
     @@index([itineraryId])
     @@index([attractionId])
+    @@map("itinerary_places")
 }
 
 model Color {
     id        Int         @id @default(autoincrement())
     name      String
     Itinerary Itinerary[]
+
+    @@map("colors")
 }
 
 model Direction {
-    startPlaceId   String
-    endPlaceId     String
-    directionsData Json
+    startPlaceId   String @map("start_place_id")
+    endPlaceId     String @map("end_place_id")
+    directionsData String @map("directions_data")
 
     @@unique([startPlaceId, endPlaceId])
     @@index([startPlaceId])
     @@index([endPlaceId])
+    @@map("directions")
 }
