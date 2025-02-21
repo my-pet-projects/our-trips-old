@@ -235,25 +235,22 @@ const parseRutravellerSite = async (url: string) => {
   const data = await res.text();
 
   const cherioRoot = cheerio.load(data);
-  const description = cherioRoot(
-    ".place-descr .place-descr__box .place-descr__txt",
-  )
+  const description = cherioRoot("[data-place-description]")
     .text()
     .trim()
     .replaceAll("\n\n", "\n");
-  const combinedName = cherioRoot(".topline-city .bth__ttl-h2").text().trim();
+
+  const combinedName = cherioRoot(".topline-hotel-sm").text().trim();
+  const script = cherioRoot("script").text();
   const names = /(?<name>.*)\((?<localName>.*)\)/g.exec(combinedName);
-  const mapLink = cherioRoot(".place-descr .place-descr__box .flr")
-    .children()
-    .first()
-    .attr("href");
-  const coordinates = mapLink?.match(/[+-]?([0-9]*[.])?[0-9]+/g);
+  const coordinatesRegex = /"cords":\["(-?\d+\.\d+)","(-?\d+\.\d+)"\]/;
+  const coordinates = script.match(coordinatesRegex);
 
   return {
     name: names?.groups?.name?.trim() || combinedName,
     localName: names?.groups?.localName?.trim() || combinedName,
-    latitude: coordinates && coordinates[0] ? +coordinates[0] : 0,
-    longitude: coordinates && coordinates[1] ? +coordinates[1] : 0,
+    latitude: coordinates && coordinates[1] ? +coordinates[1] : 0,
+    longitude: coordinates && coordinates[2] ? +coordinates[2] : 0,
     description: description,
     url: url,
   };
@@ -273,17 +270,16 @@ const parseVotpuskSite = async (url: string) => {
   const localName = /Название на английском языке - (?<localName>.*)./g.exec(
     subText,
   );
-  const coordinates =
-    /\"latitude\"\:(?<lat>[0-9]*[.][0-9]*),"longitude":(?<lon>[0-9]*[.][0-9]*)/g.exec(
-      cherioRoot.html(),
-    );
+  const script = cherioRoot("script").text();
+  const coordinatesRegex = /"latitude":(-?\d+\.\d+),"longitude":(-?\d+\.\d+)/;
+  const coordinates = script.match(coordinatesRegex);
 
   return {
     name: name,
     localName: localName?.groups?.localName || name,
     description: description,
-    latitude: coordinates?.groups?.lat ? +coordinates.groups.lat : 0,
-    longitude: coordinates?.groups?.lon ? +coordinates.groups.lon : 0,
+    latitude: coordinates && coordinates[1] ? +coordinates[1] : 0,
+    longitude: coordinates && coordinates[2] ? +coordinates[2] : 0,
     url: url,
   };
 };
